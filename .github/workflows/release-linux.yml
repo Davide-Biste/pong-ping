@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: setup node
         uses: actions/setup-node@v4
         with:
@@ -34,7 +39,7 @@ jobs:
 
       # Frontend dependencies
       - name: install frontend dependencies
-        run: npm install
+        run: bun install
 
       # Compilazione e creazione Release
       - name: Build the app
@@ -49,4 +54,3 @@ jobs:
           releaseBody: "Release ${{ github.ref_name }} of Ping Pong Counter"
           releaseDraft: true
           prerelease: false
-          packageManager: npm
