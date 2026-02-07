@@ -54,3 +54,17 @@ jobs:
           releaseBody: "Release ${{ github.ref_name }} of Ping Pong Counter"
           releaseDraft: true
           prerelease: false
+
+      # Upload the generated assets to the GitHub release
+      - name: Upload Assets
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.tar.gz
+            src-tauri/target/release/bundle/appimage/*.sig
