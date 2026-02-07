@@ -21,8 +21,7 @@ const Dashboard = () => {
                 {/* Main Title Area */}
                 <div className="mb-12 text-center space-y-2">
                     <h1 className="text-6xl md:text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-500 drop-shadow-2xl">
-                        PING PONG<br />
-                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">ARENA</span>
+                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent m-2">PONG PING</span>
                     </h1>
                 </div>
 
@@ -75,7 +74,7 @@ const Dashboard = () => {
 
                 {/* Version Tag */}
                 <div className="absolute bottom-4 text-[10px] text-neutral-800 font-mono select-none">
-                    v2.0 // PRIVATE BUILD
+                    v1.0.0
                 </div>
             </div>
         </div>
