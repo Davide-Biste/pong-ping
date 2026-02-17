@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Edit, ArrowLeft, Loader2 } from "lucide-react"; // Aggiunto Loader2 per loading state
+import { Plus, Edit, ArrowLeft, Loader2 } from "lucide-react";
 import { userService } from "@/services/userService";
 import { cn } from "@/lib/utils";
-// Assicurati che il percorso sia corretto. Se non hai questo file, crea il file gameConfig.ts con il codice degli helper che ti ho dato prima.
 import { AVAILABLE_COLORS, AVAILABLE_ICONS, getIconComponent, getColorTheme } from "@/lib/gameConfig";
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
 
 const PlayerManagement = () => {
     const navigate = useNavigate();
@@ -17,6 +18,10 @@ const PlayerManagement = () => {
     const [formData, setFormData] = useState({ name: "", nickname: "", color: "blue", icon: "User" });
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    useSpatialNav('players');
+    useAction('confirm', () => (document.activeElement as HTMLElement)?.click(), []);
+    useAction('back', () => isDialogOpen ? setIsDialogOpen(false) : navigate('/'), [isDialogOpen]);
 
     useEffect(() => {
         loadUsers();
@@ -74,7 +79,7 @@ const PlayerManagement = () => {
             {/* Header */}
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 mb-12 animate-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-4 w-full md:w-auto">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-neutral-400 hover:text-white hover:bg-white/10 rounded-full w-12 h-12">
+                    <Button variant="ghost" size="icon" data-nav="true" data-nav-group="players" tabIndex={0} onClick={() => navigate('/')} className="text-neutral-400 hover:text-white hover:bg-white/10 rounded-full w-12 h-12">
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <div>
@@ -85,6 +90,9 @@ const PlayerManagement = () => {
 
                 <Button
                     onClick={() => handleOpenDialog()}
+                    data-nav="true"
+                    data-nav-group="players"
+                    tabIndex={0}
                     className="bg-white text-black hover:bg-neutral-200 font-bold tracking-wide w-full md:w-auto shadow-[0_0_20px_rgba(255,255,255,0.15)] h-12 px-6"
                 >
                     <Plus className="mr-2 h-5 w-5" /> RECLUTA NUOVO GUERRIERO
@@ -159,6 +167,9 @@ const PlayerManagement = () => {
 
                                     <Button
                                         variant="outline"
+                                        data-nav="true"
+                                        data-nav-group="players"
+                                        tabIndex={0}
                                         className="w-full h-9 text-xs font-bold uppercase tracking-widest border-neutral-800 bg-transparent text-neutral-500 hover:text-white hover:bg-neutral-800 hover:border-neutral-700 transition-all flex items-center justify-center gap-2"
                                         onClick={() => handleOpenDialog(user)}
                                     >

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button as ButtonOriginal } from "@/components/ui/button";
-import { Trophy, RotateCcw, Home, Check, ArrowRightLeft } from "lucide-react";
+import { Trophy, RotateCcw, Home, Check } from "lucide-react";
 import Counter from "@/components/react-bits/Counter";
 
 // Bypass TS checks for JS components
@@ -10,6 +10,8 @@ const Button = ButtonOriginal as any;
 import { matchService } from '@/services/matchService';
 import { getColorTheme, getIconComponent } from "@/lib/gameConfig";
 import { cn } from "@/lib/utils";
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
 
 const GameScreen = () => {
     const { id } = useParams();
@@ -17,6 +19,16 @@ const GameScreen = () => {
     const [match, setMatch] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [rematchSwap, setRematchSwap] = useState(true);
+
+    // Determine nav group based on game state
+    const navGroup = useMemo(() => {
+        if (!match) return 'game';
+        if (match.winner) return 'winner';
+        if (!match.firstServer && match.status === 'in_progress') return 'first-server';
+        return 'game';
+    }, [match]);
+
+    useSpatialNav(navGroup);
 
     const fetchMatch = async () => {
         try {
@@ -60,6 +72,41 @@ const GameScreen = () => {
             console.error(err);
         }
     }
+
+    // Keyboard action bindings
+    useAction('add_point_left', () => {
+        if (match?.player1?._id && match.status === 'in_progress' && match.firstServer) {
+            handlePoint(match.player1._id);
+        }
+    }, [match]);
+
+    useAction('add_point_right', () => {
+        if (match?.player2?._id && match.status === 'in_progress' && match.firstServer) {
+            handlePoint(match.player2._id);
+        }
+    }, [match]);
+
+    useAction('undo', () => {
+        if (match?.events?.length > 0) handleUndo();
+    }, [match]);
+
+    useAction('confirm', () => {
+        (document.activeElement as HTMLElement)?.click();
+    }, []);
+
+    useAction('back', () => {
+        if (match?.winner) {
+            navigate('/');
+        } else if (!match?.firstServer) {
+            navigate('/');
+        } else if (match?.status === 'in_progress') {
+            // During gameplay, back = exit with cancel
+            if (match) {
+                matchService.cancelMatch(id).catch(console.error);
+            }
+            navigate('/');
+        }
+    }, [match, id]);
 
     const handleRematch = async () => {
         if (!match) return;
@@ -122,8 +169,9 @@ const GameScreen = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <Button
                             variant="outline"
-                            // FIX: Aggiunto bg-neutral-950 per togliere il bianco, e text-white per il nome
-                            // Rimosso hover:border-current per mantenere il colore del bordo specifico del player anche in hover
+                            data-nav="true"
+                            data-nav-group="first-server"
+                            tabIndex={0}
                             className={cn(
                                 "h-32 flex flex-col gap-2 bg-neutral-950 hover:bg-neutral-800 border-2 transition-colors",
                                 p1Theme.border
@@ -138,7 +186,9 @@ const GameScreen = () => {
 
                         <Button
                             variant="outline"
-                            // FIX: Stesso fix per il secondo bottone
+                            data-nav="true"
+                            data-nav-group="first-server"
+                            tabIndex={0}
                             className={cn(
                                 "h-32 flex flex-col gap-2 bg-neutral-950 hover:bg-neutral-800 border-2 transition-colors",
                                 p2Theme.border
@@ -151,7 +201,7 @@ const GameScreen = () => {
                         </Button>
                     </div>
 
-                    <Button variant="ghost" className="mt-8 text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800" onClick={() => navigate('/')}>
+                    <Button variant="ghost" data-nav="true" data-nav-group="first-server" tabIndex={0} className="mt-8 text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800" onClick={() => navigate('/')}>
                         Cancel Match
                     </Button>
                 </div>
@@ -187,7 +237,7 @@ const GameScreen = () => {
         // Find which team starts
         const startTeam1 = starterId === player1._id || starterId === player3._id;
         if (startTeam1) {
-            // Team 1 starts. A=Starter. 
+            // Team 1 starts. A=Starter.
             // Opponent X? P2 or P4. Let's assume P2 is "Primary Receiver".
             // A(Start) -> X(P2) -> B(Partner) -> Y(P4).
             const partner = starterId === player1._id ? player3._id : player1._id;
@@ -210,7 +260,7 @@ const GameScreen = () => {
         if (offset >= 0) {
             turnIndex = Math.floor(offset / servesInDeuce);
         } else {
-            // Edge case 
+            // Edge case
             turnIndex = Math.floor(totalPoints / servesBeforeChange);
         }
     } else {
@@ -250,7 +300,7 @@ const GameScreen = () => {
 
             {/* Header */}
             <div className="absolute top-4 left-4 z-10 flex gap-2">
-                <Button variant="ghost" onClick={handleExit}>
+                <Button variant="ghost" data-nav="true" data-nav-group="game" tabIndex={0} onClick={handleExit}>
                     <Home className="mr-2" /> Home
                 </Button>
             </div>
@@ -300,7 +350,10 @@ const GameScreen = () => {
 
                 {/* TEAM 1 */}
                 <div
-                    className="flex-1 flex flex-col items-center cursor-pointer group"
+                    className="flex-1 flex flex-col items-center cursor-pointer group rounded-xl"
+                    data-nav="true"
+                    data-nav-group="game"
+                    tabIndex={0}
                     onClick={() => handlePoint(player1._id)}
                 >
                     {/* Serving Indicator Team 1 */}
@@ -355,7 +408,10 @@ const GameScreen = () => {
 
                 {/* TEAM 2 */}
                 <div
-                    className="flex-1 flex flex-col items-center cursor-pointer group"
+                    className="flex-1 flex flex-col items-center cursor-pointer group rounded-xl"
+                    data-nav="true"
+                    data-nav-group="game"
+                    tabIndex={0}
                     onClick={() => handlePoint(player2._id)}
                 >
                     {/* Serving Indicator Team 2 */}
@@ -414,6 +470,9 @@ const GameScreen = () => {
                     variant="secondary"
                     size="lg"
                     className="text-xl px-8"
+                    data-nav="true"
+                    data-nav-group="game"
+                    tabIndex={0}
                     onClick={handleUndo}
                     disabled={match.events.length === 0}
                 >
@@ -452,6 +511,9 @@ const GameScreen = () => {
                             <div className="bg-neutral-800/50 rounded-lg p-3 border border-white/5 mb-4">
                                 <button
                                     onClick={handleRematch}
+                                    data-nav="true"
+                                    data-nav-group="winner"
+                                    tabIndex={0}
                                     className="w-full text-lg h-14 bg-white text-black hover:bg-neutral-200 font-black italic tracking-tighter rounded-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-lg mb-3"
                                 >
                                     <RotateCcw className="w-5 h-5" /> REMATCH
@@ -469,10 +531,10 @@ const GameScreen = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <Button variant="outline" className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/setup')}>
+                                <Button variant="outline" data-nav="true" data-nav-group="winner" tabIndex={0} className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/setup')}>
                                     New Match
                                 </Button>
-                                <Button variant="outline" className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/')}>
+                                <Button variant="outline" data-nav="true" data-nav-group="winner" tabIndex={0} className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/')}>
                                     Menu
                                 </Button>
                             </div>

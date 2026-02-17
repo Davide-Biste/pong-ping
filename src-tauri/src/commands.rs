@@ -1,7 +1,7 @@
 use crate::db::AppState;
 use crate::models::{
-    CreateGameModeDto, CreateUserDto, GameMode, Match, MatchEvent, MatchRules, ModeStat, OpponentStat, PopulatedMatch,
-    RecentMatch, ScoreSnapshot, User, UserStatistics
+    CreateGameModeDto, CreateUserDto, GameMode, KeyBinding, Match, MatchEvent, MatchRules, ModeStat,
+    OpponentStat, PopulatedMatch, RecentMatch, ScoreSnapshot, User, UserStatistics,
 };
 use chrono::Utc;
 use serde_json::json;
@@ -701,4 +701,74 @@ pub async fn get_user_statistics(state: State<'_, AppState>, user_id: i64) -> Re
         nemesis,
         victim,
     })
+}
+
+// --- Key Bindings Commands ---
+
+const DEFAULT_KEY_BINDINGS_SQL: &str =
+    "INSERT INTO key_bindings (action, key_code, label, is_default) VALUES
+    ('nav_up','ArrowUp','Arrow Up',1),('nav_down','ArrowDown','Arrow Down',1),
+    ('nav_left','ArrowLeft','Arrow Left',1),('nav_right','ArrowRight','Arrow Right',1),
+    ('confirm','Enter','Enter',1),('confirm','Space','Space',1),
+    ('back','Escape','Escape',1),('back','Backspace','Backspace',1),
+    ('add_point_left','KeyA','A',1),('add_point_right','KeyL','L',1),
+    ('undo','KeyZ','Z',1),('add_point_left','Digit1','1',1),('add_point_right','Digit0','0',1)";
+
+#[tauri::command]
+pub async fn get_key_bindings(state: State<'_, AppState>) -> Result<Vec<KeyBinding>, String> {
+    sqlx::query_as::<_, KeyBinding>("SELECT * FROM key_bindings ORDER BY action, key_code")
+        .fetch_all(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn set_key_binding(
+    state: State<'_, AppState>,
+    action: String,
+    key_code: String,
+    label: String,
+) -> Result<KeyBinding, String> {
+    sqlx::query(
+        "INSERT INTO key_bindings (action, key_code, label, is_default) VALUES (?, ?, ?, 0)
+         ON CONFLICT(action, key_code) DO UPDATE SET label = excluded.label, is_default = 0"
+    )
+    .bind(&action)
+    .bind(&key_code)
+    .bind(&label)
+    .execute(&state.db)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    sqlx::query_as::<_, KeyBinding>("SELECT * FROM key_bindings WHERE action = ? AND key_code = ?")
+        .bind(&action)
+        .bind(&key_code)
+        .fetch_one(&state.db)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn delete_key_binding(state: State<'_, AppState>, id: i64) -> Result<(), String> {
+    sqlx::query("DELETE FROM key_bindings WHERE id = ?")
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn reset_key_bindings(state: State<'_, AppState>) -> Result<Vec<KeyBinding>, String> {
+    sqlx::query("DELETE FROM key_bindings")
+        .execute(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    sqlx::query(DEFAULT_KEY_BINDINGS_SQL)
+        .execute(&state.db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    get_key_bindings(state).await
 }

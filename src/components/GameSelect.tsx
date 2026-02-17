@@ -11,7 +11,8 @@ const GameSelect = ({
                         label,
                         defaultIcon: DefaultIcon = User,
                         type = "user",
-                        disabledValues = [] // Nuova prop: Array di ID da disabilitare
+                        disabledValues = [], // Nuova prop: Array di ID da disabilitare
+                        navGroup = ""        // Spatial nav group for the trigger button
                     }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -70,6 +71,38 @@ const GameSelect = ({
         }
     };
 
+    const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape' || e.key === 'Backspace') {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(false);
+            triggerRef.current?.focus();
+            return;
+        }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!menuRef.current) return;
+            const items = Array.from(
+                menuRef.current.querySelectorAll<HTMLElement>('[role="option"]:not([tabindex="-1"])')
+            );
+            if (items.length === 0) return;
+            const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+            const nextIndex = e.key === 'ArrowDown'
+                ? (currentIndex < items.length - 1 ? currentIndex + 1 : 0)
+                : (currentIndex > 0 ? currentIndex - 1 : items.length - 1);
+            items[nextIndex]?.focus();
+        }
+    };
+
+    const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(true);
+        }
+    };
+
     const selectedOption = options.find(o => o._id === value);
 
     let activeTheme = { border: "border-neutral-700", text: "text-neutral-500", shadow: "", bg: "bg-neutral-800" };
@@ -109,8 +142,10 @@ const GameSelect = ({
             <button
                 ref={triggerRef}
                 onClick={() => setIsOpen(!isOpen)}
+                onKeyDown={handleTriggerKeyDown}
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
+                {...(navGroup ? { 'data-nav': 'true', 'data-nav-group': navGroup, tabIndex: 0 } : {})}
                 className={cn(
                     "w-full h-16 bg-black/40 backdrop-blur-md border rounded-xl flex items-center px-4 transition-all duration-300 relative overflow-hidden group/btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black",
                     activeTheme.border,
@@ -153,6 +188,7 @@ const GameSelect = ({
                 <div
                     ref={menuRef}
                     role="listbox"
+                    onKeyDown={handleMenuKeyDown}
                     className="absolute z-50 w-full mt-2 bg-[#0a0a0a] border border-neutral-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5"
                 >
                     <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
