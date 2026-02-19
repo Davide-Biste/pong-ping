@@ -5,6 +5,8 @@ import { userService } from '../services/userService';
 import CountUp from './react-bits/CountUp.tsx';
 import { getIconComponent } from "@/lib/gameConfig.ts";
 import PlayerProfile from './PlayerProfile';
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
 
 
 const HallOfFame = () => {
@@ -12,6 +14,10 @@ const HallOfFame = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUserId, setSelectedUserId] = useState(null);
+
+    useSpatialNav('hof');
+    useAction('confirm', () => document.activeElement?.click(), []);
+    useAction('back', () => selectedUserId ? setSelectedUserId(null) : navigate('/'), [selectedUserId]);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -51,6 +57,9 @@ const HallOfFame = () => {
             <div className="w-full max-w-4xl flex items-center justify-between mb-12 animate-in slide-in-from-top-4 duration-500">
                 <button
                     onClick={() => navigate('/')}
+                    data-nav="true"
+                    data-nav-group="hof"
+                    tabIndex={0}
                     className="p-3 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
                 >
                     <ArrowLeft size={24} />
@@ -77,6 +86,9 @@ const HallOfFame = () => {
                         <div
                             key={user._id}
                             onClick={() => setSelectedUserId(user._id)}
+                            data-nav="true"
+                            data-nav-group="hof"
+                            tabIndex={0}
                             className={`relative group rounded-2xl border p-4 md:p-6 flex flex-col md:flex-row items-center gap-6 transition-all duration-300 hover:scale-[1.01] cursor-pointer animate-in slide-in-from-bottom-4
                                 ${getRankStyle(index)}
                             `}

@@ -1,9 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Trophy, Users } from 'lucide-react';
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    useSpatialNav('dashboard');
+    useAction('confirm', () => document.activeElement?.click(), []);
+    useAction('back', () => {}, []);
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center relative overflow-hidden font-sans selection:bg-purple-500/30">
@@ -41,6 +46,9 @@ const Dashboard = () => {
                         {/* BIG START BUTTON */}
                         <button
                             onClick={() => navigate('/setup')}
+                            data-nav="true"
+                            data-nav-group="dashboard"
+                            tabIndex={0}
                             className="relative w-full group overflow-hidden rounded-xl bg-blue-600 p-px shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)] transition-all duration-300 hover:shadow-[0_0_60px_-15px_rgba(37,99,235,0.7)] hover:scale-[1.02]"
                         >
                             <span className="absolute inset-0 overflow-hidden rounded-xl">
@@ -58,6 +66,9 @@ const Dashboard = () => {
                 <div className="mt-12 flex gap-4 opacity-60 hover:opacity-100 transition-opacity duration-300">
                     <button
                         onClick={() => navigate('/hall-of-fame')}
+                        data-nav="true"
+                        data-nav-group="dashboard"
+                        tabIndex={0}
                         className="flex items-center gap-2 px-4 py-2 bg-neutral-900/50 border border-neutral-800 rounded-full text-xs font-mono text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
                     >
                         <Trophy size={12} className="text-yellow-500" />
@@ -65,6 +76,9 @@ const Dashboard = () => {
                     </button>
                     <button
                         onClick={() => navigate('/players')}
+                        data-nav="true"
+                        data-nav-group="dashboard"
+                        tabIndex={0}
                         className="flex items-center gap-2 px-4 py-2 bg-neutral-900/50 border border-neutral-800 rounded-full text-xs font-mono text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
                     >
                         <Users size={12} className="text-blue-500" />

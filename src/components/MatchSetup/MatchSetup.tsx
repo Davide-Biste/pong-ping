@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button as ButtonOriginal } from "@/components/ui/button";
 import { Dialog as DialogOriginal, DialogContent as DialogContentOriginal, DialogHeader as DialogHeaderOriginal, DialogTitle as DialogTitleOriginal, DialogDescription as DialogDescriptionOriginal, DialogFooter as DialogFooterOriginal } from "@/components/ui/dialog";
 import { Input as InputOriginal } from "@/components/ui/input";
-import { Play, Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users } from "lucide-react";
+import { Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users } from "lucide-react";
 import { userService } from "@/services/userService";
 import { gameModeService } from "@/services/gameModeService";
 import { matchService } from "@/services/matchService";
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { AVAILABLE_COLORS, AVAILABLE_ICONS } from "@/lib/gameConfig";
 import GameSelect from "@/components/GameSelect.tsx";
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
 
 // Bypass TS checks for JS components
 const Button = ButtonOriginal as any;
@@ -64,6 +66,16 @@ const MatchSetup = () => {
     const [newUserColor, setNewUserColor] = useState("blue");
     const [newUserIcon, setNewUserIcon] = useState("User");
     const [creatingUser, setCreatingUser] = useState(false);
+
+    // Spatial navigation per step
+    useSpatialNav(`setup-step-${step}`);
+    useAction('back', () => {
+        if (isUserDialogOpen) { setIsUserDialogOpen(false); return; }
+        if (step > 0) setStep(step - 1);
+        else navigate('/');
+    }, [step, isUserDialogOpen]);
+    useAction('confirm', () => (document.activeElement as HTMLElement)?.click(), []);
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -177,6 +189,9 @@ const MatchSetup = () => {
                         {step > 0 && (
                             <button
                                 onClick={() => setStep(step - 1)}
+                                data-nav="true"
+                                data-nav-group={`setup-step-${step}`}
+                                tabIndex={0}
                                 className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                                 aria-label="Go back to previous step"
                             >
@@ -216,6 +231,9 @@ const MatchSetup = () => {
                                     <button
                                         key={mode._id}
                                         onClick={() => { setModeId(mode._id); setStep(1); }}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-0"
+                                        tabIndex={0}
                                         className={cn(
                                             "group relative bg-neutral-900/40 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 text-left outline-none",
                                             "focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500",
@@ -260,6 +278,9 @@ const MatchSetup = () => {
                                         />
                                         <button
                                             onClick={() => setIsDoubles(false)}
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
                                             className={cn(
                                                 "relative w-[120px] py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors z-10",
                                                 !isDoubles ? "text-white" : "text-neutral-500 hover:text-neutral-300"
@@ -269,6 +290,9 @@ const MatchSetup = () => {
                                         </button>
                                         <button
                                             onClick={() => setIsDoubles(true)}
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
                                             className={cn(
                                                 "relative w-[120px] py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors z-10",
                                                 isDoubles ? "text-white" : "text-neutral-500 hover:text-neutral-300"
@@ -293,6 +317,7 @@ const MatchSetup = () => {
                                             onChange={setP1}
                                             type="user"
                                             disabledValues={[p2, p3, p4].filter(Boolean)}
+                                            navGroup="setup-step-1"
                                         />
                                         {isDoubles && (
                                             <GameSelect
@@ -303,6 +328,7 @@ const MatchSetup = () => {
                                                 onChange={setP3}
                                                 type="user"
                                                 disabledValues={[p1, p2, p4].filter(Boolean)}
+                                                navGroup="setup-step-1"
                                             />
                                         )}
                                     </div>
@@ -315,6 +341,9 @@ const MatchSetup = () => {
                                                 const t1 = p1; setP1(p2); setP2(t1);
                                                 if (isDoubles) { const t3 = p3; setP3(p4); setP4(t3); }
                                             }}
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
                                             className="p-3 rounded-full bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 hover:border-neutral-500 transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                             aria-label="Swap sides"
                                         >
@@ -336,6 +365,7 @@ const MatchSetup = () => {
                                             onChange={setP2}
                                             type="user"
                                             disabledValues={[p1, p3, p4].filter(Boolean)}
+                                            navGroup="setup-step-1"
                                         />
                                         {isDoubles && (
                                             <GameSelect
@@ -346,6 +376,7 @@ const MatchSetup = () => {
                                                 onChange={setP4}
                                                 type="user"
                                                 disabledValues={[p1, p2, p3].filter(Boolean)}
+                                                navGroup="setup-step-1"
                                             />
                                         )}
                                     </div>
@@ -354,6 +385,9 @@ const MatchSetup = () => {
                                 <div className="mt-12 flex justify-between items-center border-t border-white/5 pt-8">
                                     <Button
                                         variant="ghost"
+                                        data-nav="true"
+                                        data-nav-group="setup-step-1"
+                                        tabIndex={0}
                                         onClick={() => setIsUserDialogOpen(true)}
                                         className="text-neutral-500 hover:text-white hover:bg-white/5"
                                     >
@@ -361,6 +395,9 @@ const MatchSetup = () => {
                                     </Button>
                                     <Button
                                         onClick={() => setStep(2)}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-1"
+                                        tabIndex={0}
                                         disabled={!p1 || !p2 || (isDoubles && (!p3 || !p4))}
                                         className={cn(
                                             "bg-white text-black hover:bg-neutral-200 font-bold px-8 h-12 text-lg transition-all",
@@ -393,7 +430,7 @@ const MatchSetup = () => {
                                             <div className="text-xl font-bold text-white">{gameModes.find(m => m._id === modeId)?.name}</div>
                                         </div>
                                     </div>
-                                    <Button size="sm" variant="ghost" className="text-neutral-500 hover:text-white" onClick={() => setStep(0)}>Change</Button>
+                                    <Button size="sm" variant="ghost" data-nav="true" data-nav-group="setup-step-2" tabIndex={0} className="text-neutral-500 hover:text-white" onClick={() => setStep(0)}>Change</Button>
                                 </div>
 
                                 {/* Rules Config */}
@@ -409,12 +446,18 @@ const MatchSetup = () => {
                                             <div className="flex bg-neutral-900/80 p-1 rounded-lg border border-white/5">
                                                 <button
                                                     onClick={() => setServeType('free')}
+                                                    data-nav="true"
+                                                    data-nav-group="setup-step-2"
+                                                    tabIndex={0}
                                                     className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50", serveType === 'free' ? "bg-neutral-800 text-white shadow-md" : "text-neutral-500 hover:text-white")}
                                                 >
                                                     FREE
                                                 </button>
                                                 <button
                                                     onClick={() => setServeType('cross')}
+                                                    data-nav="true"
+                                                    data-nav-group="setup-step-2"
+                                                    tabIndex={0}
                                                     className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50", serveType === 'cross' ? "bg-neutral-800 text-purple-400 shadow-md" : "text-neutral-500 hover:text-white")}
                                                 >
                                                     CROSS
@@ -425,9 +468,9 @@ const MatchSetup = () => {
                                         <div className="space-y-3">
                                             <label className="text-xs text-neutral-500 font-bold uppercase">Deuce Serves</label>
                                             <div className="flex items-center gap-3">
-                                                <button onClick={() => setServesInDeuce(Math.max(1, servesInDeuce - 1))} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">-</button>
+                                                <button onClick={() => setServesInDeuce(Math.max(1, servesInDeuce - 1))} data-nav="true" data-nav-group="setup-step-2" tabIndex={0} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">-</button>
                                                 <div className="flex-1 text-center font-mono font-bold text-xl">{servesInDeuce}</div>
-                                                <button onClick={() => setServesInDeuce(servesInDeuce + 1)} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">+</button>
+                                                <button onClick={() => setServesInDeuce(servesInDeuce + 1)} data-nav="true" data-nav-group="setup-step-2" tabIndex={0} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -435,15 +478,23 @@ const MatchSetup = () => {
 
                                 {/* START BUTTON */}
                                 <div className="pt-4 relative group">
-                                    <Button
-                                        ref={startButtonRef}
-                                        className="absolute inset-0 w-full h-20 opacity-0 z-50 cursor-pointer"
-                                        onClick={handleStart}
-                                    />
-                                    <div className="w-full h-20 bg-green-600 rounded-xl flex items-center justify-center gap-4 group-hover:bg-green-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all duration-300">
+                                    <div className={cn(
+                                        "w-full h-20 bg-green-600 rounded-xl flex items-center justify-center gap-4 transition-all duration-300",
+                                        "group-hover:bg-green-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]",
+                                        "group-focus-within:ring-4 group-focus-within:ring-green-400 group-focus-within:ring-offset-4 group-focus-within:ring-offset-black group-focus-within:scale-[1.02] group-focus-within:shadow-[0_0_40px_rgba(34,197,94,0.6)]"
+                                    )}>
                                         <Swords size={28} className="text-black" />
                                         <span className="text-3xl font-black italic text-black tracking-tighter">FIGHT</span>
                                     </div>
+                                    <button
+                                        ref={startButtonRef}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-2"
+                                        tabIndex={0}
+                                        onClick={handleStart}
+                                        className="absolute inset-0 w-full h-20 opacity-0 z-10 cursor-pointer focus:outline-none"
+                                        aria-label="Start fight"
+                                    />
                                 </div>
 
                             </motion.div>
