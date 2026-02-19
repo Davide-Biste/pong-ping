@@ -184,33 +184,27 @@
   }
 }
 
-/*!* Spatial navigation focus indicator *!*/
-/*[data-nav="true"]:focus-visible {*/
-/*    outline: 2px solid rgba(255, 255, 255, 0.8);*/
-/*    outline-offset: 2px;*/
-/*    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15), 0 0 20px rgba(255, 255, 255, 0.1);*/
-/*    transition: outline 0.15s ease, box-shadow 0.15s ease;*/
-/*}*/
-
-/*[data-nav="true"]:focus:not(:focus-visible) {*/
-/*    outline: none;*/
-/*}*/
-
-
-/* Nel tuo file CSS globale o in un <style> nel componente */
-[data-nav="true"]:focus {
+[data-nav="true"] {
   outline: none;
 }
 
-[data-nav="true"]:focus-visible {
-  outline: 3px solid rgb(168, 85, 247); /* purple-500 */
+/* Usa :focus per spatial nav */
+[data-nav="true"]:focus {
+  outline: 3px solid rgb(168, 85, 247);
   outline-offset: 4px;
   transform: scale(1.02);
   box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.3);
+  transition: all 0.15s ease;
+}
+
+/* Evita l'effetto quando si clicca con il mouse (opzionale) */
+[data-nav="true"]:focus:not(:focus-visible) {
+  outline: 2px solid rgba(168, 85, 247, 0.4);
+  transform: scale(1.01);
 }
 
 /* Stile più intenso per il pulsante principale */
-[data-nav="true"]:focus-visible.main-button {
+[data-nav="true"].main-button:focus {
   outline: 4px solid rgb(168, 85, 247);
   outline-offset: 6px;
   box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);

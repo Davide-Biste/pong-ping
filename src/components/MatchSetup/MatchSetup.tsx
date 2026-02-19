@@ -478,18 +478,23 @@ const MatchSetup = () => {
 
                                 {/* START BUTTON */}
                                 <div className="pt-4 relative group">
-                                    <Button
+                                    <div className={cn(
+                                        "w-full h-20 bg-green-600 rounded-xl flex items-center justify-center gap-4 transition-all duration-300",
+                                        "group-hover:bg-green-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)]",
+                                        "group-focus-within:ring-4 group-focus-within:ring-green-400 group-focus-within:ring-offset-4 group-focus-within:ring-offset-black group-focus-within:scale-[1.02] group-focus-within:shadow-[0_0_40px_rgba(34,197,94,0.6)]"
+                                    )}>
+                                        <Swords size={28} className="text-black" />
+                                        <span className="text-3xl font-black italic text-black tracking-tighter">FIGHT</span>
+                                    </div>
+                                    <button
                                         ref={startButtonRef}
                                         data-nav="true"
                                         data-nav-group="setup-step-2"
                                         tabIndex={0}
-                                        className="absolute inset-0 w-full h-20 opacity-0 z-50 cursor-pointer"
                                         onClick={handleStart}
+                                        className="absolute inset-0 w-full h-20 opacity-0 z-10 cursor-pointer focus:outline-none"
+                                        aria-label="Start fight"
                                     />
-                                    <div className="w-full h-20 bg-green-600 rounded-xl flex items-center justify-center gap-4 group-hover:bg-green-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all duration-300">
-                                        <Swords size={28} className="text-black" />
-                                        <span className="text-3xl font-black italic text-black tracking-tighter">FIGHT</span>
-                                    </div>
                                 </div>
 
                             </motion.div>

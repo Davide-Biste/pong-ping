@@ -57,16 +57,21 @@ const GameSelect = ({
     }, [isOpen]);
 
     const handleSelect = (id: string, isDisabled: boolean) => {
-        if (isDisabled) return; // Blocca selezione se disabilitato
+        if (isDisabled) return;
         onChange(id);
         setIsOpen(false);
-        if (triggerRef.current) triggerRef.current.focus();
+
+        // Ritarda leggermente il focus per evitare che l'evento Enter si propaghi
+        setTimeout(() => {
+            if (triggerRef.current) triggerRef.current.focus();
+        }, 50);
     };
 
     const handleKeyDownItem = (e: React.KeyboardEvent, id: string, isDisabled: boolean) => {
         if (isDisabled) return;
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            e.stopPropagation();
             handleSelect(id, isDisabled);
         }
     };
@@ -100,8 +105,19 @@ const GameSelect = ({
             e.preventDefault();
             e.stopPropagation();
             setIsOpen(true);
+            return;
+        }
+
+        // Permetti Enter/Space di aprire quando chiuso, ma previeni quando aperto
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!isOpen) {
+                setIsOpen(true);
+            }
         }
     };
+
 
     const selectedOption = options.find(o => o._id === value);
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useAction } from './useAction';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -63,6 +63,21 @@ export function useSpatialNav(groupId: string = 'default') {
         return bestEl;
     }, [getNavigableElements]);
 
+    // Helper function to focus with visible indicator
+    const focusWithVisible = useCallback((element: HTMLElement) => {
+        try {
+            // Try with focusVisible option (experimental but supported in modern browsers)
+            element.focus({
+                preventScroll: false,
+                focusVisible: true
+            } as FocusOptions & { focusVisible?: boolean });
+        } catch {
+            // Fallback: just focus normally
+            element.focus({ preventScroll: false });
+        }
+        element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, []);
+
     const navigate = useCallback((direction: Direction) => {
         const current = document.activeElement as HTMLElement;
         const elements = getNavigableElements();
@@ -70,17 +85,30 @@ export function useSpatialNav(groupId: string = 'default') {
         // If nothing focused or focused element is not navigable, focus first element
         if (!current || !elements.includes(current)) {
             if (elements.length > 0) {
-                elements[0].focus();
+                focusWithVisible(elements[0]);
             }
             return;
         }
 
         const target = findNearest(current, direction);
         if (target) {
-            target.focus();
-            target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            focusWithVisible(target);
         }
-    }, [getNavigableElements, findNearest]);
+    }, [getNavigableElements, findNearest, focusWithVisible]);
+
+    // Auto-focus first element on mount
+    useEffect(() => {
+        const elements = getNavigableElements();
+        if (elements.length > 0 && !document.activeElement?.hasAttribute('data-nav')) {
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                const firstElement = getNavigableElements()[0];
+                if (firstElement) {
+                    focusWithVisible(firstElement);
+                }
+            }, 100);
+        }
+    }, [groupId, getNavigableElements, focusWithVisible]);
 
     useAction('nav_up',    () => navigate('up'),    [navigate]);
     useAction('nav_down',  () => navigate('down'),  [navigate]);
