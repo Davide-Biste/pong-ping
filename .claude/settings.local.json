@@ -3,7 +3,9 @@
     "allow": [
       "Bash(cargo check:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(npm run lint:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }
