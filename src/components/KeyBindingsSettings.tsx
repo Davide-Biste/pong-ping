@@ -141,7 +141,7 @@ const KeyBindingsSettings = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white p-4 md:p-8 flex flex-col items-center font-sans selection:bg-neutral-500/30">
+        <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center font-sans selection:bg-neutral-500/30">
             {/* Header */}
             <div className="w-full max-w-3xl flex items-center justify-between mb-10 animate-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center gap-4">

@@ -157,7 +157,7 @@ const GameScreen = () => {
     // Show Server Selection Modal if not set
     if (!match.firstServer && !winner && match.status === 'in_progress') {
         return (
-            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
                 {/* Background similar to main screen but dimmed */}
                 <div className={cn("absolute top-0 left-0 w-1/2 h-full opacity-10", p1Theme.bg)} />
                 <div className={cn("absolute top-0 right-0 w-1/2 h-full opacity-10", p2Theme.bg)} />
@@ -284,7 +284,7 @@ const GameScreen = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
 
             {/* Background effects */}
             <div className={cn(

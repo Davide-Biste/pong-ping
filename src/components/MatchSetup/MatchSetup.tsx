@@ -145,7 +145,7 @@ const MatchSetup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4 overflow-hidden relative selection:bg-green-500/30">
+        <div className="min-h-screen text-white flex items-center justify-center p-4 overflow-hidden relative selection:bg-green-500/30">
             {/* Background Ambient Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />

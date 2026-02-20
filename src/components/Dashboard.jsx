@@ -11,7 +11,7 @@ const Dashboard = () => {
     useAction('back', () => {}, []);
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center relative overflow-hidden font-sans selection:bg-purple-500/30">
+        <div className="min-h-screen text-white flex flex-col items-center justify-center relative overflow-hidden font-sans selection:bg-purple-500/30">
 
             {/* Background Ambient Glows - Static but deep */}
             <div className="fixed inset-0 pointer-events-none">
@@ -35,7 +35,7 @@ const Dashboard = () => {
                     {/* Glowing border effect on hover */}
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
 
-                    <div className="bg-[#111] rounded-[22px] p-8 flex flex-col items-center gap-8 relative overflow-hidden">
+                    <div className="bg-black/60 rounded-[22px] p-8 flex flex-col items-center gap-8 relative overflow-hidden">
 
                         {/* Header text */}
                         <div className="text-center space-y-1">

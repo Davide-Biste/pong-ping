@@ -74,7 +74,7 @@ const PlayerManagement = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8 font-sans selection:bg-neutral-700/50">
+        <div className="min-h-screen text-white p-4 md:p-8 font-sans selection:bg-neutral-700/50">
 
             {/* Header */}
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 mb-12 animate-in slide-in-from-top-4 duration-500">
