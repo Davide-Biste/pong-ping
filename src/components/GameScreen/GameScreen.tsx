@@ -136,8 +136,19 @@ const GameScreen = () => {
         }
     };
 
-    if (isLoading) return <div className="text-white text-center mt-20">Loading Arena...</div>;
-    if (!match) return <div className="text-white text-center mt-20">Match not found</div>;
+    if (isLoading) return (
+        <div className="min-h-screen text-white flex items-center justify-center font-mono">
+            <div className="text-center">
+                <div className="w-10 h-10 rounded-full border-2 border-green-500/20 border-t-green-400 animate-spin mx-auto mb-4" />
+                <p className="font-arcade text-green-400/60" style={{ fontSize: '0.6rem' }}>LOADING ARENA...</p>
+            </div>
+        </div>
+    );
+    if (!match) return (
+        <div className="min-h-screen text-white flex items-center justify-center font-mono">
+            <p className="font-arcade text-neutral-500" style={{ fontSize: '0.6rem' }}>MATCH NOT FOUND</p>
+        </div>
+    );
 
     const { player1, player2, player3, player4, score, gameMode, winner } = match;
     const isDoubles = !!player3 && !!player4;
@@ -157,40 +168,41 @@ const GameScreen = () => {
     // Show Server Selection Modal if not set
     if (!match.firstServer && !winner && match.status === 'in_progress') {
         return (
-            <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                {/* Background similar to main screen but dimmed */}
+            <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-mono">
+                {/* CRT Overlays */}
+                <div className="fixed inset-0 scanlines z-10 pointer-events-none" />
+                <div className="fixed inset-0 crt-vignette z-20 pointer-events-none" />
+
+                {/* Background */}
                 <div className={cn("absolute top-0 left-0 w-1/2 h-full opacity-10", p1Theme.bg)} />
                 <div className={cn("absolute top-0 right-0 w-1/2 h-full opacity-10", p2Theme.bg)} />
 
-                <div className="z-10 bg-neutral-900 border border-neutral-800 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-                    <h2 className="text-3xl font-bold mb-2">Who Starts?</h2>
-                    <p className="text-neutral-400 mb-8">Select the player (or team) serving first.</p>
+                <div className="z-30 bg-black/80 border border-green-500/25 p-8 rounded-2xl shadow-[0_0_40px_rgba(74,222,128,0.1)] max-w-md w-full text-center">
+                    <p className="font-arcade text-green-400 mb-2" style={{ fontSize: '0.9rem' }}>WHO STARTS?</p>
+                    <p className="text-neutral-500 text-xs mb-8 font-mono">Select the player (or team) serving first.</p>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Button
-                            variant="outline"
+                        <button
                             data-nav="true"
                             data-nav-group="first-server"
                             tabIndex={0}
                             className={cn(
-                                "h-32 flex flex-col gap-2 bg-neutral-950 hover:bg-neutral-800 border-2 transition-colors",
+                                "h-32 flex flex-col gap-2 items-center justify-center bg-neutral-950 border-2 rounded-xl transition-all hover:bg-yellow-400/5",
                                 p1Theme.border
                             )}
                             onClick={() => handleSetFirstServer(player1._id)}
                         >
                             <P1Icon size={32} className={p1Theme.text} />
-                            {/* Aggiunto colore testo esplicito o eredita dal container, ma meglio forzare per sicurezza */}
                             <span className="text-lg font-bold text-white">{player1.name}</span>
                             {isDoubles && <span className="text-xs text-neutral-500">+ {player3.name}</span>}
-                        </Button>
+                        </button>
 
-                        <Button
-                            variant="outline"
+                        <button
                             data-nav="true"
                             data-nav-group="first-server"
                             tabIndex={0}
                             className={cn(
-                                "h-32 flex flex-col gap-2 bg-neutral-950 hover:bg-neutral-800 border-2 transition-colors",
+                                "h-32 flex flex-col gap-2 items-center justify-center bg-neutral-950 border-2 rounded-xl transition-all hover:bg-yellow-400/5",
                                 p2Theme.border
                             )}
                             onClick={() => handleSetFirstServer(player2._id)}
@@ -198,12 +210,19 @@ const GameScreen = () => {
                             <P2Icon size={32} className={p2Theme.text} />
                             <span className="text-lg font-bold text-white">{player2.name}</span>
                             {isDoubles && <span className="text-xs text-neutral-500">+ {player4.name}</span>}
-                        </Button>
+                        </button>
                     </div>
 
-                    <Button variant="ghost" data-nav="true" data-nav-group="first-server" tabIndex={0} className="mt-8 text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800" onClick={() => navigate('/')}>
+                    <button
+                        data-nav="true"
+                        data-nav-group="first-server"
+                        tabIndex={0}
+                        className="mt-8 text-xs font-arcade text-neutral-600 hover:text-neutral-400 transition-colors"
+                        style={{ fontSize: '0.45rem' }}
+                        onClick={() => navigate('/')}
+                    >
                         Cancel Match
-                    </Button>
+                    </button>
                 </div>
             </div>
         )
@@ -284,7 +303,11 @@ const GameScreen = () => {
     };
 
     return (
-        <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-mono">
+
+            {/* CRT Overlays */}
+            <div className="fixed inset-0 scanlines z-10 pointer-events-none" />
+            <div className="fixed inset-0 crt-vignette z-20 pointer-events-none" />
 
             {/* Background effects */}
             <div className={cn(
@@ -299,36 +322,38 @@ const GameScreen = () => {
             )} />
 
             {/* Header */}
-            <div className="absolute top-4 left-4 z-10 flex gap-2">
-                <Button variant="ghost" data-nav="true" data-nav-group="game" tabIndex={0} onClick={handleExit}>
-                    <Home className="mr-2" /> Home
-                </Button>
+            <div className="absolute top-4 left-4 z-30 flex gap-2">
+                <button
+                    data-nav="true"
+                    data-nav-group="game"
+                    tabIndex={0}
+                    onClick={handleExit}
+                    className="arcade-btn-cyan px-4 py-2 text-[0.45rem] flex items-center gap-2"
+                >
+                    <Home size={12} /> Home
+                </button>
             </div>
 
             {/* Rule Indicators (Cross/Free) */}
             {matchRules.serveType && (
-                <div className="absolute top-4 right-4 z-10">
-                    <div className="px-3 py-1 bg-neutral-900/80 backdrop-blur border border-white/10 rounded-full text-xs font-mono font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                        <span className={cn("w-2 h-2 rounded-full", matchRules.serveType === 'cross' ? "bg-purple-500 shadow-[0_0_8px_#a855f7]" : "bg-white shadow-[0_0_8px_white]")} />
+                <div className="absolute top-4 right-4 z-30">
+                    <div className="px-3 py-1 bg-black/70 backdrop-blur border border-green-500/20 rounded-full text-xs font-arcade font-bold text-green-400 uppercase tracking-widest flex items-center gap-2"
+                        style={{ fontSize: '0.4rem' }}>
+                        <span className={cn("w-2 h-2 rounded-full", matchRules.serveType === 'cross' ? "bg-green-400 shadow-[0_0_8px_#4ade80]" : "bg-green-500 shadow-[0_0_8px_#22c55e]")} />
                         {matchRules.serveType} SERVE
                     </div>
                 </div>
             )}
 
-            <div className="mb-8 z-10 flex flex-col items-center gap-3">
+            <div className="mb-8 z-30 flex flex-col items-center gap-3">
                 {/* TARGET SCORE BADGE */}
-                <div className="relative group cursor-default">
-                    {/* Glow Effect Background */}
-                    <div className="absolute -inset-1 rounded-full blur opacity-25 transition duration-500"></div>
-
-                    {/* Main Badge Content */}
-                    <div className="relative flex items-center gap-2 px-6 py-2 bg-neutral-900/80 backdrop-blur-md border border-white/10 rounded-full shadow-xl">
-                        <Trophy size={14} className="text-yellow-500" />
-                        <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest mr-2">Target</span>
-                        <span className="text-xl font-black italic text-white tracking-tighter">
-                            {gameMode.pointsToWin || 11} <span className="text-xs font-normal text-neutral-500 not-italic ml-0.5">PTS</span>
-                        </span>
-                    </div>
+                <div className="relative flex items-center gap-2 px-6 py-2 bg-black/70 backdrop-blur-md border border-green-500/20 rounded-full shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                    <Trophy size={14} className="text-green-400" />
+                    <span className="font-arcade text-neutral-500 uppercase mr-2" style={{ fontSize: '0.4rem' }}>Target</span>
+                    <span className="text-xl font-black text-green-400 tracking-tighter"
+                        style={{ textShadow: '0 0 10px rgba(74,222,128,0.5)' }}>
+                        {gameMode.pointsToWin || 11} <span className="text-xs font-normal text-neutral-500 ml-0.5">PTS</span>
+                    </span>
                 </div>
 
                 {/* DEUCE BADGE (Shows only if active) */}
@@ -336,7 +361,7 @@ const GameScreen = () => {
                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="relative px-4 py-1 bg-orange-500/10 border border-orange-500/50 rounded-lg flex items-center gap-2 shadow-[0_0_15px_rgba(249,115,22,0.3)] animate-pulse">
                             <div className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-                            <span className="text-xs font-black text-orange-400 uppercase tracking-[0.2em]">
+                            <span className="font-arcade text-orange-400 uppercase" style={{ fontSize: '0.45rem', letterSpacing: '0.2em' }}>
                                 DEUCE ACTIVE
                             </span>
                         </div>
@@ -346,7 +371,7 @@ const GameScreen = () => {
 
 
             {/* Scoreboard */}
-            <div className="flex w-full max-w-6xl justify-between items-center z-10 gap-4 lg:gap-12">
+            <div className="flex w-full max-w-6xl justify-between items-center z-30 gap-4 lg:gap-12">
 
                 {/* TEAM 1 */}
                 <div
@@ -400,11 +425,11 @@ const GameScreen = () => {
                             <div className="absolute bottom-6 font-bold text-2xl flex items-center gap-2"><P1Icon size={24} /> {player1.name}</div>
                         </Card>
                     )}
-                    <div className="mt-4 text-sm text-neutral-400">Click card to add point</div>
+                    <div className="mt-4 font-arcade text-neutral-600" style={{ fontSize: '0.4rem' }}>Click card to add point</div>
                 </div>
 
                 {/* VS / Divider */}
-                <div className="text-4xl font-black text-neutral-700 italic">VS</div>
+                <div className="font-arcade text-neutral-700" style={{ fontSize: '1.2rem' }}>VS</div>
 
                 {/* TEAM 2 */}
                 <div
@@ -460,47 +485,61 @@ const GameScreen = () => {
                             <div className="absolute bottom-6 font-bold text-2xl flex items-center gap-2"><P2Icon size={24} /> {player2.name}</div>
                         </Card>
                     )}
-                    <div className="mt-4 text-sm text-neutral-400">Click card to add point</div>
+                    <div className="mt-4 font-arcade text-neutral-600" style={{ fontSize: '0.4rem' }}>Click card to add point</div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="mt-12 z-20 flex gap-4">
-                <Button
-                    variant="secondary"
-                    size="lg"
-                    className="text-xl px-8"
+            <div className="mt-12 z-30 flex gap-4">
+                <button
+                    className="arcade-btn-cyan px-8 py-3 text-[0.5rem] flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                     data-nav="true"
                     data-nav-group="game"
                     tabIndex={0}
                     onClick={handleUndo}
                     disabled={match.events.length === 0}
                 >
-                    <RotateCcw className="mr-2" /> Undo
-                </Button>
+                    <RotateCcw size={14} className="mr-1" /> Undo
+                </button>
             </div>
 
             {/* Winner Overlay */}
             {winner && (
-                <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-500">
-                    <div className="text-center p-8 bg-neutral-900 border border-yellow-500 rounded-xl shadow-2xl shadow-yellow-500/20 max-w-lg w-full relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent"></div>
+                <div className="absolute inset-0 bg-black/85 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-500">
+                    {/* Scanlines on overlay too */}
+                    <div className="absolute inset-0 scanlines pointer-events-none opacity-50" />
 
-                        <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-4 animate-[bounce_2s_infinite]" />
-                        <h1 className="text-6xl font-black italic text-white mb-2 tracking-tighter drop-shadow-lg">VICTORY!</h1>
-                        <h2 className="text-3xl text-yellow-400 mb-8 font-bold">{match.winner.name} wins!</h2>
+                    <div className="text-center p-8 bg-black/80 border border-amber-500/40 rounded-xl shadow-[0_0_60px_rgba(251,191,36,0.15)] max-w-lg w-full relative overflow-hidden font-mono">
+                        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"></div>
+
+                        <Trophy className="w-20 h-20 text-amber-400 mx-auto mb-4 animate-[bounce_2s_infinite]"
+                            style={{ filter: 'drop-shadow(0 0 20px rgba(251,191,36,0.5))' }} />
+
+                        <h1 className="font-arcade text-amber-300 mb-2"
+                            style={{ fontSize: '1.5rem', textShadow: '0 0 30px rgba(251,191,36,0.5)' }}>
+                            VICTORY!
+                        </h1>
+                        <h2 className="font-arcade text-amber-400/70 mb-8" style={{ fontSize: '0.7rem' }}>
+                            {match.winner.name} wins!
+                        </h2>
 
                         <div className="flex items-center justify-center gap-8 mb-8">
                             <div className="flex flex-col items-center">
-                                <div className={cn("text-5xl font-black tabular-nums", score.p1 > score.p2 ? "text-yellow-500" : "text-neutral-500")}>{score.p1}</div>
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mt-1">
+                                <div className={cn("text-5xl font-black tabular-nums", score.p1 > score.p2 ? "text-amber-400" : "text-neutral-600")}
+                                    style={score.p1 > score.p2 ? { textShadow: '0 0 20px rgba(251,191,36,0.4)' } : {}}>
+                                    {score.p1}
+                                </div>
+                                <div className="font-arcade text-neutral-500 uppercase mt-1" style={{ fontSize: '0.38rem' }}>
                                     {player1.name} {isDoubles && `& ${player3.name}`}
                                 </div>
                             </div>
-                            <div className="text-2xl font-black text-neutral-700 italic">VS</div>
+                            <div className="font-arcade text-neutral-700" style={{ fontSize: '0.8rem' }}>VS</div>
                             <div className="flex flex-col items-center">
-                                <div className={cn("text-5xl font-black tabular-nums", score.p2 > score.p1 ? "text-yellow-500" : "text-neutral-500")}>{score.p2}</div>
-                                <div className="text-sm font-bold text-neutral-400 uppercase tracking-widest mt-1">
+                                <div className={cn("text-5xl font-black tabular-nums", score.p2 > score.p1 ? "text-amber-400" : "text-neutral-600")}
+                                    style={score.p2 > score.p1 ? { textShadow: '0 0 20px rgba(251,191,36,0.4)' } : {}}>
+                                    {score.p2}
+                                </div>
+                                <div className="font-arcade text-neutral-500 uppercase mt-1" style={{ fontSize: '0.38rem' }}>
                                     {player2.name} {isDoubles && `& ${player4.name}`}
                                 </div>
                             </div>
@@ -508,20 +547,20 @@ const GameScreen = () => {
 
                         <div className="space-y-3">
                             {/* Rematch Section */}
-                            <div className="bg-neutral-800/50 rounded-lg p-3 border border-white/5 mb-4">
+                            <div className="bg-neutral-900/50 rounded-lg p-3 border border-green-500/15 mb-4">
                                 <button
                                     onClick={handleRematch}
                                     data-nav="true"
                                     data-nav-group="winner"
                                     tabIndex={0}
-                                    className="w-full text-lg h-14 bg-white text-black hover:bg-neutral-200 font-black italic tracking-tighter rounded-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-lg mb-3"
+                                    className="arcade-btn w-full h-14 text-xs flex items-center justify-center gap-2 mb-3"
                                 >
-                                    <RotateCcw className="w-5 h-5" /> REMATCH
+                                    <RotateCcw className="w-4 h-4" /> REMATCH
                                 </button>
 
                                 <div
                                     onClick={() => setRematchSwap(!rematchSwap)}
-                                    className="flex items-center justify-center gap-2 text-sm text-neutral-400 cursor-pointer hover:text-white transition-colors"
+                                    className="flex items-center justify-center gap-2 text-xs text-neutral-500 cursor-pointer hover:text-white transition-colors font-mono"
                                 >
                                     <div className={cn("w-4 h-4 rounded border flex items-center justify-center transition-colors", rematchSwap ? "bg-green-500 border-green-500 text-black" : "border-neutral-600 bg-transparent")}>
                                         {rematchSwap && <Check size={12} strokeWidth={4} />}
@@ -531,18 +570,32 @@ const GameScreen = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <Button variant="outline" data-nav="true" data-nav-group="winner" tabIndex={0} className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/setup')}>
+                                <button
+                                    data-nav="true"
+                                    data-nav-group="winner"
+                                    tabIndex={0}
+                                    className="arcade-btn-cyan h-12 text-[0.45rem]"
+                                    onClick={() => navigate('/setup')}
+                                >
                                     New Match
-                                </Button>
-                                <Button variant="outline" data-nav="true" data-nav-group="winner" tabIndex={0} className="h-12 border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white" onClick={() => navigate('/')}>
+                                </button>
+                                <button
+                                    data-nav="true"
+                                    data-nav-group="winner"
+                                    tabIndex={0}
+                                    className="arcade-btn-cyan h-12 text-[0.45rem]"
+                                    onClick={() => navigate('/')}
+                                >
                                     Menu
-                                </Button>
+                                </button>
                             </div>
 
-                            <button onClick={handleUndo} className="w-full text-xs text-neutral-600 hover:text-neutral-400 mt-2 py-2">
+                            <button onClick={handleUndo} className="w-full font-arcade text-neutral-700 hover:text-neutral-500 mt-2 py-2 transition-colors" style={{ fontSize: '0.38rem' }}>
                                 Made a mistake? Undo last point
                             </button>
                         </div>
+
+                        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent"></div>
                     </div>
                 </div>
             )}

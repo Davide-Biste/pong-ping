@@ -25,12 +25,12 @@ function ChampionCard({ user, onClick }) {
             className="relative w-full cursor-pointer group mb-5 mt-6"
         >
             {/* Crown badge */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-amber-400 text-black font-black text-[11px] px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-amber-500/40">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-amber-400 text-black font-black text-[11px] px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-amber-500/40 font-arcade" style={{ fontSize: '0.45rem' }}>
                 <Crown size={11} fill="currentColor" /> Champion
             </div>
 
             {/* Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-amber-400/20 bg-black/55 backdrop-blur-xl transition-all duration-300 hover:border-amber-400/40 hover:shadow-[0_0_60px_rgba(251,191,36,0.12)]">
+            <div className="relative overflow-hidden rounded-2xl border border-amber-400/25 bg-black/55 backdrop-blur-xl transition-all duration-300 hover:border-amber-400/50 hover:shadow-[0_0_60px_rgba(251,191,36,0.15)]">
                 {/* Player color tint */}
                 <div className={cn("absolute inset-0 opacity-[0.04]", theme.bg)} />
                 {/* Top shimmer */}
@@ -41,17 +41,18 @@ function ChampionCard({ user, onClick }) {
                     <div className={cn(
                         "w-24 h-24 rounded-2xl flex items-center justify-center flex-shrink-0",
                         "bg-black/60 border-2 border-amber-400/25",
-                        "shadow-[0_0_30px_rgba(251,191,36,0.15)] group-hover:shadow-[0_0_50px_rgba(251,191,36,0.25)] transition-shadow duration-300"
+                        "shadow-[0_0_30px_rgba(251,191,36,0.15)] group-hover:shadow-[0_0_50px_rgba(251,191,36,0.3)] transition-shadow duration-300"
                     )}>
                         {React.createElement(getIconComponent(user.icon), { size: 48, className: theme.text, strokeWidth: 1.5 })}
                     </div>
 
                     {/* Identity */}
                     <div className="flex-1 text-center sm:text-left">
-                        <h2 className="text-5xl font-black italic tracking-tighter text-amber-300 leading-none">
+                        <h2 className="text-5xl font-black italic tracking-tighter text-amber-300 leading-none"
+                            style={{ textShadow: '0 0 20px rgba(251,191,36,0.4)' }}>
                             {user.name}
                         </h2>
-                        <p className="text-sm font-mono text-white/30 mt-2 uppercase tracking-widest">
+                        <p className="text-xs font-arcade text-white/25 mt-2 uppercase tracking-widest" style={{ fontSize: '0.4rem' }}>
                             "{user.funNickname || 'The Unknown'}"
                         </p>
                     </div>
@@ -62,25 +63,25 @@ function ChampionCard({ user, onClick }) {
                             <div className="text-4xl font-black text-amber-300 leading-none">
                                 <CountUp to={user.wins} duration={1.5} />
                             </div>
-                            <div className="text-[10px] uppercase tracking-widest text-white/30 mt-1.5 flex items-center gap-1 justify-center">
+                            <div className="text-[10px] font-arcade uppercase tracking-widest text-white/30 mt-1.5 flex items-center gap-1 justify-center" style={{ fontSize: '0.4rem' }}>
                                 <Trophy size={9} /> Wins
                             </div>
                         </div>
-                        <div className="w-px h-10 bg-white/10" />
+                        <div className="w-px h-10 bg-amber-500/20" />
                         <div className="text-center">
                             <div className="text-4xl font-black text-white/60 leading-none">
                                 <CountUp to={user.matchesPlayed || 0} duration={1.2} />
                             </div>
-                            <div className="text-[10px] uppercase tracking-widest text-white/30 mt-1.5 flex items-center gap-1 justify-center">
+                            <div className="text-[10px] font-arcade uppercase tracking-widest text-white/30 mt-1.5 flex items-center gap-1 justify-center" style={{ fontSize: '0.4rem' }}>
                                 <Swords size={9} /> Played
                             </div>
                         </div>
-                        <div className="w-px h-10 bg-white/10" />
+                        <div className="w-px h-10 bg-amber-500/20" />
                         <div className="text-center">
                             <div className={cn("text-4xl font-black leading-none", wr >= 50 ? "text-green-400" : "text-red-400")}>
                                 <CountUp to={wr} duration={1.4} />%
                             </div>
-                            <div className="text-[10px] uppercase tracking-widest text-white/30 mt-1.5">Win Rate</div>
+                            <div className="text-[10px] font-arcade uppercase tracking-widest text-white/30 mt-1.5" style={{ fontSize: '0.4rem' }}>Win Rate</div>
                         </div>
                     </div>
                 </div>
@@ -102,7 +103,7 @@ function PodiumCard({ user, rank, onClick }) {
         border: "border-white/15",
         shimmer: "via-white/20",
         accent: "text-slate-200",
-        hover: "hover:border-white/25 hover:shadow-[0_0_40px_rgba(255,255,255,0.06)]",
+        hover: "hover:border-yellow-400/30 hover:shadow-[0_0_40px_rgba(234,179,8,0.08)]",
         avatarBorder: "border-white/15",
     } : {
         badge: "bg-orange-500 text-white",
@@ -129,7 +130,8 @@ function PodiumCard({ user, rank, onClick }) {
             <div className={cn("absolute inset-0 opacity-[0.03]", theme.bg)} />
 
             {/* Rank badge */}
-            <div className={cn("absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-md", style.badge)}>
+            <div className={cn("absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-md font-arcade", style.badge)}
+                style={{ fontSize: '0.55rem' }}>
                 {rank}
             </div>
 
@@ -144,7 +146,7 @@ function PodiumCard({ user, rank, onClick }) {
                     <h3 className={cn("text-2xl font-black italic tracking-tight leading-none", style.accent)}>
                         {user.name}
                     </h3>
-                    <p className="text-[11px] font-mono text-white/25 mt-1">"{user.funNickname || 'The Unknown'}"</p>
+                    <p className="text-[11px] font-arcade text-white/20 mt-1" style={{ fontSize: '0.4rem' }}>"{user.funNickname || 'The Unknown'}"</p>
                 </div>
 
                 {/* Stats */}
@@ -153,21 +155,21 @@ function PodiumCard({ user, rank, onClick }) {
                         <div className={cn("text-2xl font-black leading-none", style.accent)}>
                             <CountUp to={user.wins} duration={1.3} />
                         </div>
-                        <div className="text-[9px] uppercase tracking-widest text-white/20 mt-1">Wins</div>
+                        <div className="text-[9px] font-arcade uppercase tracking-widest text-white/20 mt-1" style={{ fontSize: '0.38rem' }}>Wins</div>
                     </div>
                     <div className="w-px h-6 bg-white/10" />
                     <div className="text-center">
                         <div className="text-2xl font-black leading-none text-white/50">
                             <CountUp to={user.matchesPlayed || 0} duration={1.1} />
                         </div>
-                        <div className="text-[9px] uppercase tracking-widest text-white/20 mt-1">Played</div>
+                        <div className="text-[9px] font-arcade uppercase tracking-widest text-white/20 mt-1" style={{ fontSize: '0.38rem' }}>Played</div>
                     </div>
                     <div className="w-px h-6 bg-white/10" />
                     <div className="text-center">
                         <div className={cn("text-2xl font-black leading-none", wr >= 50 ? "text-green-400" : "text-red-400")}>
                             <CountUp to={wr} duration={1.3} />%
                         </div>
-                        <div className="text-[9px] uppercase tracking-widest text-white/20 mt-1">Win Rate</div>
+                        <div className="text-[9px] font-arcade uppercase tracking-widest text-white/20 mt-1" style={{ fontSize: '0.38rem' }}>Win Rate</div>
                     </div>
                 </div>
             </div>
@@ -185,19 +187,20 @@ function RankRow({ user, rank, onClick }) {
             data-nav="true"
             data-nav-group="hof"
             tabIndex={0}
-            className="flex items-center gap-4 px-5 py-3.5 rounded-xl bg-black/30 border border-white/5 hover:bg-black/50 hover:border-white/10 transition-all duration-200 cursor-pointer group"
+            className="flex items-center gap-4 px-5 py-3.5 rounded-xl bg-black/30 border border-green-500/8 hover:bg-black/50 hover:border-yellow-400/25 transition-all duration-200 cursor-pointer group"
         >
-            <div className="w-7 text-center font-mono text-sm font-bold text-white/20 group-hover:text-white/40 flex-shrink-0">
+            <div className="w-7 text-center font-arcade text-xs font-bold text-white/20 group-hover:text-yellow-400/70 flex-shrink-0"
+                style={{ fontSize: '0.5rem' }}>
                 {rank}
             </div>
 
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-black/40 border border-white/5 flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-black/40 border border-green-500/10 flex-shrink-0">
                 {React.createElement(getIconComponent(user.icon), { size: 18, className: theme.text, strokeWidth: 1.5 })}
             </div>
 
             <div className="flex-1 min-w-0">
                 <div className="font-bold text-sm text-white/70 truncate group-hover:text-white/90 transition-colors">{user.name}</div>
-                <div className="text-[10px] font-mono text-white/20 italic">"{user.funNickname || 'The Unknown'}"</div>
+                <div className="text-[10px] font-arcade text-white/20 italic" style={{ fontSize: '0.4rem' }}>"{user.funNickname || 'The Unknown'}"</div>
             </div>
 
             <div className="flex items-center gap-5 flex-shrink-0">
@@ -205,19 +208,19 @@ function RankRow({ user, rank, onClick }) {
                     <div className="text-base font-black text-white/60 leading-none">
                         <CountUp to={user.wins} duration={1.0} />
                     </div>
-                    <div className="text-[8px] uppercase text-white/20 tracking-wider mt-0.5">Wins</div>
+                    <div className="text-[8px] font-arcade uppercase text-white/20 tracking-wider mt-0.5" style={{ fontSize: '0.38rem' }}>Wins</div>
                 </div>
                 <div className="text-center hidden sm:block">
                     <div className="text-base font-black text-white/40 leading-none">
                         <CountUp to={user.matchesPlayed || 0} duration={1.0} />
                     </div>
-                    <div className="text-[8px] uppercase text-white/20 tracking-wider mt-0.5">Played</div>
+                    <div className="text-[8px] font-arcade uppercase text-white/20 tracking-wider mt-0.5" style={{ fontSize: '0.38rem' }}>Played</div>
                 </div>
                 <div className="text-center">
                     <div className={cn("text-base font-black leading-none", wr >= 50 ? "text-green-400/80" : "text-red-400/70")}>
                         <CountUp to={wr} duration={1.0} />%
                     </div>
-                    <div className="text-[8px] uppercase text-white/20 tracking-wider mt-0.5">W/R</div>
+                    <div className="text-[8px] font-arcade uppercase text-white/20 tracking-wider mt-0.5" style={{ fontSize: '0.38rem' }}>W/R</div>
                 </div>
             </div>
         </div>
@@ -252,25 +255,36 @@ const HallOfFame = () => {
     const [champion, silver, bronze, ...rest] = users;
 
     return (
-        <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center font-sans pb-24">
+        <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center font-mono pb-24 relative overflow-hidden">
+
+            {/* CRT Overlays */}
+            <div className="fixed inset-0 scanlines z-10 pointer-events-none" />
+            <div className="fixed inset-0 crt-vignette z-20 pointer-events-none" />
+
+            {/* Background ambient glows */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/15 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-900/10 rounded-full blur-[150px]" />
+            </div>
 
             {/* Header */}
-            <div className="w-full max-w-3xl flex items-center justify-between pt-4 mb-2">
+            <div className="w-full max-w-3xl flex items-center justify-between pt-4 mb-2 z-30">
                 <button
                     onClick={() => navigate('/')}
                     data-nav="true"
                     data-nav-group="hof"
                     tabIndex={0}
-                    className="p-2.5 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-colors"
+                    className="p-2.5 rounded-full hover:bg-yellow-400/8 text-white/30 hover:text-yellow-400 border border-transparent hover:border-yellow-400/30 transition-colors"
                 >
                     <ArrowLeft size={20} />
                 </button>
 
                 <div className="text-center">
-                    <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700">
+                    <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-700"
+                        style={{ filter: 'drop-shadow(0 0 20px rgba(251,191,36,0.3))' }}>
                         HALL OF FAME
                     </h1>
-                    <p className="text-white/20 font-mono text-[10px] uppercase tracking-[0.5em] mt-2">
+                    <p className="font-arcade text-white/20 uppercase mt-2" style={{ fontSize: '0.4rem', letterSpacing: '0.5em' }}>
                         Legends never die
                     </p>
                 </div>
@@ -279,16 +293,16 @@ const HallOfFame = () => {
             </div>
 
             {/* Content */}
-            <div className="w-full max-w-3xl">
+            <div className="w-full max-w-3xl z-30">
                 {loading ? (
                     <div className="flex items-center justify-center py-32">
-                        <div className="w-10 h-10 rounded-full border-2 border-amber-500/20 border-t-amber-400 animate-spin" />
+                        <div className="w-10 h-10 rounded-full border-2 border-green-500/20 border-t-green-400 animate-spin" />
                     </div>
                 ) : users.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
-                        <Skull size={48} className="text-white/30" />
-                        <p className="text-lg font-bold text-white/40">No warriors found.</p>
-                        <p className="text-sm text-white/25">Be the first to enter the arena.</p>
+                        <Skull size={48} className="text-green-400/30" />
+                        <p className="font-arcade text-white/40" style={{ fontSize: '0.7rem' }}>No warriors found.</p>
+                        <p className="text-sm text-white/25 font-mono">Be the first to enter the arena.</p>
                     </div>
                 ) : (
                     <>

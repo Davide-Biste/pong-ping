@@ -1,77 +1,125 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Trophy, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Trophy, Users } from 'lucide-react';
 import { useSpatialNav } from '@/hooks/useSpatialNav';
 import { useAction } from '@/hooks/useAction';
+import { userService } from '@/services/userService';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const [playerCount, setPlayerCount] = useState(0);
+
     useSpatialNav('dashboard');
     useAction('confirm', () => document.activeElement?.click(), []);
     useAction('back', () => {}, []);
 
-    return (
-        <div className="min-h-screen text-white flex flex-col items-center justify-center relative overflow-hidden font-sans selection:bg-purple-500/30">
+    useEffect(() => {
+        userService.getAll()
+            .then((users) => setPlayerCount(users.length))
+            .catch(() => {});
+    }, []);
 
-            {/* Background Ambient Glows - Static but deep */}
+    return (
+        <div className="min-h-screen text-white flex flex-col items-center justify-center relative overflow-hidden font-mono selection:bg-purple-500/30">
+
+            {/* CRT Scanlines — z-10 */}
+            <div className="fixed inset-0 scanlines z-10" />
+
+            {/* CRT Vignette — z-20 */}
+            <div className="fixed inset-0 crt-vignette z-20" />
+
+            {/* Background ambient glows */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[120px] opacity-40" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] opacity-40" />
-                {/* Subtle Grain Texture overlay */}
-                <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+                <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-purple-900/25 rounded-full blur-[150px]" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-purple-900/15 rounded-full blur-[150px]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-800/10 rounded-full blur-[100px]" />
             </div>
 
-            <div className="z-10 flex flex-col items-center w-full max-w-md px-6 animate-in fade-in zoom-in duration-700">
+            {/* Content — z-30 */}
+            <div className="z-30 flex flex-col items-center w-full max-w-lg px-8 gap-10">
 
-                {/* Main Title Area */}
-                <div className="mb-12 text-center space-y-2">
-                    <h1 className="text-6xl md:text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-500 drop-shadow-2xl">
-                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent m-2">PONG PING</span>
-                    </h1>
-                </div>
+                {/* Corner decorations */}
+                <div className="fixed top-4 left-4 text-green-500/25 font-arcade text-xs select-none">╔═</div>
+                <div className="fixed top-4 right-4 text-green-500/25 font-arcade text-xs select-none">═╗</div>
+                <div className="fixed bottom-4 left-4 text-green-500/25 font-arcade text-xs select-none">╚═</div>
+                <div className="fixed bottom-4 right-4 text-green-500/25 font-arcade text-xs select-none">═╝</div>
 
-                {/* Main Card */}
-                <div className="w-full bg-neutral-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-1 shadow-2xl relative group">
-                    {/* Glowing border effect on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl -z-10" />
+                {/* INSERT COIN */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="text-center"
+                >
+                    <span
+                        className="text-green-400 font-arcade text-sm tracking-widest"
+                        style={{ animation: 'blink 0.7s step-start infinite' }}
+                    >
+                        ── INSERT COIN ──
+                    </span>
+                </motion.div>
 
-                    <div className="bg-black/60 rounded-[22px] p-8 flex flex-col items-center gap-8 relative overflow-hidden">
-
-                        {/* Header text */}
-                        <div className="text-center space-y-1">
-                            <h2 className="text-2xl font-medium text-white tracking-tight">Ready to Fight?</h2>
-                            <p className="text-neutral-500 text-sm">Select players, configure rules, and destroy your friends.</p>
-                        </div>
-
-                        {/* BIG START BUTTON */}
-                        <button
-                            onClick={() => navigate('/setup')}
-                            data-nav="true"
-                            data-nav-group="dashboard"
-                            tabIndex={0}
-                            className="relative w-full group overflow-hidden rounded-xl bg-blue-600 p-px shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)] transition-all duration-300 hover:shadow-[0_0_60px_-15px_rgba(37,99,235,0.7)] hover:scale-[1.02]"
-                        >
-                            <span className="absolute inset-0 overflow-hidden rounded-xl">
-                                <span className="absolute inset-0 rounded-xl bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                            </span>
-                            <div className="relative flex h-16 items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 px-8 transition-all duration-300 group-hover:from-blue-500 group-hover:to-blue-600">
-                                <Play className="w-6 h-6 fill-white text-white" />
-                                <span className="text-xl font-bold tracking-wide">START MATCH</span>
-                            </div>
-                        </button>
+                {/* PONG / PING Title */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                    className="text-center leading-tight"
+                >
+                    <div
+                        className="arcade-title arcade-title-glitch text-green-400 text-7xl block mb-2"
+                        data-text="PONG"
+                    >
+                        PONG
                     </div>
-                </div>
+                    <div className="arcade-title-cyan text-green-300 text-7xl block">
+                        PING
+                    </div>
+                    <div className="mt-5 text-neutral-500 font-arcade text-[0.55rem] tracking-[0.3em] uppercase">
+                        Table Tennis Tracker
+                    </div>
+                </motion.div>
 
-                {/* Footer Links / Fun stats */}
-                <div className="mt-12 flex gap-4 opacity-60 hover:opacity-100 transition-opacity duration-300">
+                {/* PRESS START button */}
+                <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    onClick={() => navigate('/setup')}
+                    data-nav="true"
+                    data-nav-group="dashboard"
+                    tabIndex={0}
+                    className="arcade-btn w-full py-6 px-10 text-base tracking-widest uppercase"
+                >
+                    ▶ PRESS START
+                </motion.button>
+
+                {/* Stats bar */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.5 }}
+                    className="text-neutral-600 font-arcade text-[0.6rem] tracking-widest text-center"
+                >
+                    PLAYERS: {playerCount}&nbsp;&nbsp;|&nbsp;&nbsp;© 2025 PONG PING
+                </motion.div>
+
+                {/* Footer buttons */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.0, duration: 0.5 }}
+                    className="flex gap-4 w-full"
+                >
                     <button
                         onClick={() => navigate('/hall-of-fame')}
                         data-nav="true"
                         data-nav-group="dashboard"
                         tabIndex={0}
-                        className="flex items-center gap-2 px-4 py-2 bg-neutral-900/50 border border-neutral-800 rounded-full text-xs font-mono text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
+                        className="arcade-btn-cyan flex-1 flex items-center justify-center gap-2 py-4 px-4 tracking-wider uppercase"
                     >
-                        <Trophy size={12} className="text-yellow-500" />
+                        <Trophy size={14} />
                         HALL OF FAME
                     </button>
                     <button
@@ -79,17 +127,13 @@ const Dashboard = () => {
                         data-nav="true"
                         data-nav-group="dashboard"
                         tabIndex={0}
-                        className="flex items-center gap-2 px-4 py-2 bg-neutral-900/50 border border-neutral-800 rounded-full text-xs font-mono text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
+                        className="arcade-btn-cyan flex-1 flex items-center justify-center gap-2 py-4 px-4 tracking-wider uppercase"
                     >
-                        <Users size={12} className="text-blue-500" />
-                        MANAGE PLAYERS
+                        <Users size={14} />
+                        PLAYERS
                     </button>
-                </div>
+                </motion.div>
 
-                {/* Version Tag */}
-                <div className="absolute bottom-4 text-[10px] text-neutral-800 font-mono select-none">
-                    v1.0.0
-                </div>
             </div>
         </div>
     );

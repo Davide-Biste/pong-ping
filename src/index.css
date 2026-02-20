@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
@@ -52,6 +53,169 @@
 @keyframes loading {
   0% { width: 0%; }
   100% { width: 100%; }
+}
+
+/* ── Arcade Animations ── */
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 4px #4ade80,
+      0 0 12px #4ade80,
+      0 0 24px #16a34a,
+      0 0 48px #16a34a;
+  }
+  50% {
+    text-shadow:
+      0 0 2px #4ade80,
+      0 0 6px #4ade80,
+      0 0 14px #16a34a,
+      0 0 28px #16a34a;
+  }
+}
+
+@keyframes neon-pulse-cyan {
+  0%, 100% {
+    text-shadow:
+      0 0 4px #86efac,
+      0 0 12px #86efac,
+      0 0 24px #22c55e,
+      0 0 48px #22c55e;
+  }
+  50% {
+    text-shadow:
+      0 0 2px #86efac,
+      0 0 6px #86efac,
+      0 0 14px #22c55e,
+      0 0 28px #22c55e;
+  }
+}
+
+@keyframes scanline-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+@keyframes glitch {
+  0%, 95%, 100% {
+    clip-path: none;
+    transform: translateX(0);
+  }
+  96% {
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    transform: translateX(-4px);
+  }
+  97% {
+    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+    transform: translateX(4px);
+  }
+  98% {
+    clip-path: polygon(0 5%, 100% 5%, 100% 15%, 0 15%);
+    transform: translateX(-2px);
+  }
+}
+
+/* ── Arcade Classes ── */
+
+.font-arcade {
+  font-family: 'Press Start 2P', monospace;
+}
+
+.scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.05) 3px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  animation: scanline-move 8s linear infinite;
+  pointer-events: none;
+}
+
+.arcade-title {
+  font-family: 'Press Start 2P', monospace;
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+.arcade-title-cyan {
+  font-family: 'Press Start 2P', monospace;
+  animation: neon-pulse-cyan 2s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+.arcade-title-glitch {
+  position: relative;
+}
+
+.arcade-title-glitch::before,
+.arcade-title-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.arcade-title-glitch::before {
+  color: #86efac;
+  animation: glitch 6s steps(1) infinite;
+  animation-delay: 1s;
+}
+
+.arcade-title-glitch::after {
+  color: #4ade80;
+  animation: glitch 6s steps(1) infinite;
+  animation-delay: 1.5s;
+}
+
+.arcade-btn {
+  border: 2px solid #4ade80;
+  background: transparent;
+  color: #4ade80;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.3), inset 0 0 10px rgba(74, 222, 128, 0.05);
+  transition: all 0.2s ease;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.arcade-btn:hover,
+.arcade-btn:focus {
+  background: rgba(234, 179, 8, 0.08);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5), 0 0 40px rgba(234, 179, 8, 0.25), inset 0 0 15px rgba(234, 179, 8, 0.08);
+  border-color: #eab308;
+  color: #facc15;
+}
+
+.arcade-btn-cyan {
+  border: 2px solid #4ade80;
+  background: transparent;
+  color: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.2), inset 0 0 8px rgba(74, 222, 128, 0.05);
+  transition: all 0.2s ease;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+}
+
+.arcade-btn-cyan:hover,
+.arcade-btn-cyan:focus {
+  background: rgba(234, 179, 8, 0.08);
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.4), 0 0 30px rgba(234, 179, 8, 0.2), inset 0 0 10px rgba(234, 179, 8, 0.08);
+  border-color: #eab308;
+  color: #facc15;
+}
+
+.crt-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.4) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  pointer-events: none;
 }
 
 @layer base {
@@ -192,22 +356,22 @@
 
 /* Usa :focus per spatial nav */
 [data-nav="true"]:focus {
-  outline: 3px solid rgb(168, 85, 247);
+  outline: 3px solid #eab308;
   outline-offset: 4px;
   transform: scale(1.02);
-  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.25);
   transition: all 0.15s ease;
 }
 
 /* Evita l'effetto quando si clicca con il mouse (opzionale) */
 [data-nav="true"]:focus:not(:focus-visible) {
-  outline: 2px solid rgba(168, 85, 247, 0.4);
+  outline: 2px solid rgba(234, 179, 8, 0.35);
   transform: scale(1.01);
 }
 
 /* Stile più intenso per il pulsante principale */
 [data-nav="true"].main-button:focus {
-  outline: 4px solid rgb(168, 85, 247);
+  outline: 4px solid #eab308;
   outline-offset: 6px;
-  box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 40px rgba(234, 179, 8, 0.5);
 }
