@@ -15,10 +15,13 @@ jobs:
         include:
           - platform: ubuntu-22.04
             args: ''
+            rust-targets: ''
           - platform: windows-latest
             args: ''
+            rust-targets: ''
           - platform: macos-latest
             args: '--target universal-apple-darwin'
+            rust-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -37,8 +40,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Universal binary targets for macOS (Intel + Apple Silicon)
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust-targets }}
 
       - name: Install dependencies (Ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
