@@ -30,9 +30,15 @@ sed -i.bak "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" "$CARGO_TOML"
 rm "$CARGO_TOML.bak"
 echo "  ✓ src-tauri/Cargo.toml"
 
+# ── package.json ─────────────────────────────────────────────────────────────
+PACKAGE_JSON="$ROOT/package.json"
+sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" "$PACKAGE_JSON"
+rm "$PACKAGE_JSON.bak"
+echo "  ✓ package.json"
+
 # ── Commit ───────────────────────────────────────────────────────────────────
 cd "$ROOT"
-git add src-tauri/tauri.conf.json src-tauri/Cargo.toml
+git add src-tauri/tauri.conf.json src-tauri/Cargo.toml package.json
 git commit -m "🔖 bump version to $VERSION"
 
 echo ""
@@ -41,4 +47,3 @@ echo ""
 echo "  git flow release finish v$VERSION"
 echo "  git push origin master develop --tags"
 echo ""
-echo "La GitHub Action partirà automaticamente sul tag v$VERSION."

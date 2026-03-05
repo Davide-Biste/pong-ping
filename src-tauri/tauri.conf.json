@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "PingPongArena",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "identifier": "com.davide.pingpong",
   "build": {
     "frontendDist": "../dist",
