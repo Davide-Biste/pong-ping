@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button as ButtonOriginal } from "@/components/ui/button";
 import { Dialog as DialogOriginal, DialogContent as DialogContentOriginal, DialogHeader as DialogHeaderOriginal, DialogTitle as DialogTitleOriginal, DialogDescription as DialogDescriptionOriginal, DialogFooter as DialogFooterOriginal } from "@/components/ui/dialog";
 import { Input as InputOriginal } from "@/components/ui/input";
-import { Play, Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users } from "lucide-react";
+import { Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users, Zap, X, Play } from "lucide-react";
 import { userService } from "@/services/userService";
 import { gameModeService } from "@/services/gameModeService";
 import { matchService } from "@/services/matchService";
@@ -12,6 +12,19 @@ import { cn } from "@/lib/utils";
 import { AVAILABLE_COLORS, AVAILABLE_ICONS } from "@/lib/gameConfig";
 import GameSelect from "@/components/GameSelect.tsx";
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSpatialNav } from '@/hooks/useSpatialNav';
+import { useAction } from '@/hooks/useAction';
+
+type OpenMatch = {
+    _id: number;
+    player1: { name: string; color?: string; icon?: string };
+    player2: { name: string; color?: string; icon?: string };
+    player3?: { name: string } | null;
+    player4?: { name: string } | null;
+    score: { p1: number; p2: number };
+    startTime: string;
+    gameMode: { name: string };
+};
 
 // Bypass TS checks for JS components
 const Button = ButtonOriginal as any;
@@ -44,6 +57,11 @@ const MatchSetup = () => {
     const [serveType, setServeType] = useState('free');
     const [servesInDeuce, setServesInDeuce] = useState(1);
 
+    // Open matches state
+    const [openMatches, setOpenMatches] = useState<OpenMatch[]>([]);
+    const [cancelConfirmId, setCancelConfirmId] = useState<number | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
+
     // Update defaults when mode changes
     useEffect(() => {
         if (modeId && gameModes.length) {
@@ -65,19 +83,46 @@ const MatchSetup = () => {
     const [newUserIcon, setNewUserIcon] = useState("User");
     const [creatingUser, setCreatingUser] = useState(false);
 
+    // Spatial navigation per step
+    useSpatialNav(`setup-step-${step}`);
+    useAction('back', () => {
+        if (isUserDialogOpen) { setIsUserDialogOpen(false); return; }
+        if (step > 0) setStep(step - 1);
+        else navigate('/');
+    }, [step, isUserDialogOpen]);
+    useAction('confirm', () => (document.activeElement as HTMLElement)?.click(), []);
+
+
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [u, m] = await Promise.all([userService.getAll(), gameModeService.getAll()]);
+                const [u, m, om] = await Promise.all([
+                    userService.getAll(),
+                    gameModeService.getAll(),
+                    matchService.getOpenMatches(),
+                ]);
                 setUsers(u || []);
                 setGameModes(m || []);
-                // Don't auto-set modeId, let user choose in step 0
+                setOpenMatches(om || []);
             } catch (e) {
                 console.error("Error loading data", e);
             }
         };
         loadData();
     }, []);
+
+    const handleCancelMatch = async (matchId: number) => {
+        setIsCancelling(true);
+        try {
+            await matchService.cancelMatch(matchId);
+            setOpenMatches(prev => prev.filter(m => m._id !== matchId));
+        } catch (err) {
+            console.error("Failed to cancel match", err);
+        } finally {
+            setIsCancelling(false);
+            setCancelConfirmId(null);
+        }
+    };
 
     // Focus start button on step 2
     useEffect(() => {
@@ -133,12 +178,16 @@ const MatchSetup = () => {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-white flex items-center justify-center p-4 overflow-hidden relative selection:bg-green-500/30">
+        <div className="min-h-screen text-white flex items-center justify-center p-4 overflow-hidden relative font-mono selection:bg-purple-500/30">
+
+            {/* CRT Overlays */}
+            <div className="fixed inset-0 scanlines z-10 pointer-events-none" />
+            <div className="fixed inset-0 crt-vignette z-20 pointer-events-none" />
+
             {/* Background Ambient Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] opacity-20" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/15 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/15 rounded-full blur-[120px]" />
             </div>
 
             {/* Loading Overlay */}
@@ -157,10 +206,10 @@ const MatchSetup = () => {
                                     text="INITIALIZING BATTLE ARENA..."
                                     speed={70}
                                     animateOn="view"
-                                    className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 tracking-tighter"
+                                    className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-300 tracking-tighter"
                                 />
                                 <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden mt-8">
-                                    <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 shadow-[0_0_15px_#10b981] animate-[loading_2.5s_ease-in-out_forwards]" style={{ width: '0%' }}></div>
+                                    <div className="h-full bg-gradient-to-r from-green-500 to-green-300 shadow-[0_0_15px_#4ade80] animate-[loading_2.5s_ease-in-out_forwards]" style={{ width: '0%' }}></div>
                                 </div>
                             </div>
                         </div>
@@ -168,8 +217,66 @@ const MatchSetup = () => {
                 )}
             </AnimatePresence>
 
+            {/* Active Matches Panel */}
+            <AnimatePresence>
+                {openMatches.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -16 }}
+                        className="fixed top-4 right-4 z-40 w-80"
+                    >
+                        <div className="bg-neutral-900/95 border border-yellow-400/30 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.1)] backdrop-blur-xl">
+                            <div className="px-4 py-3 border-b border-yellow-400/20 flex items-center gap-2">
+                                <Zap size={14} className="text-yellow-400 animate-pulse" />
+                                <span className="text-[10px] font-arcade text-yellow-400 uppercase tracking-widest">Active Battles</span>
+                                <span className="ml-auto text-[10px] font-arcade text-neutral-500">{openMatches.length}</span>
+                            </div>
+                            <div className="divide-y divide-white/5 max-h-72 overflow-y-auto custom-scrollbar">
+                                {openMatches.map(match => {
+                                    const team1 = match.player3
+                                        ? `${match.player1.name} & ${match.player3.name}`
+                                        : match.player1.name;
+                                    const team2 = match.player4
+                                        ? `${match.player2.name} & ${match.player4.name}`
+                                        : match.player2.name;
+                                    return (
+                                        <div key={match._id} className="px-4 py-3 hover:bg-white/3 transition-colors">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[9px] font-arcade text-neutral-600 uppercase">{match.gameMode.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-xs font-bold text-white truncate flex-1">{team1}</span>
+                                                <span className="text-sm font-arcade text-yellow-400 tabular-nums shrink-0">
+                                                    {match.score.p1} — {match.score.p2}
+                                                </span>
+                                                <span className="text-xs font-bold text-white truncate flex-1 text-right">{team2}</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => navigate(`/game/${match._id}`)}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-arcade uppercase tracking-wider bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 hover:border-green-500/60 text-green-400 rounded-lg transition-all"
+                                                >
+                                                    <Play size={10} /> Resume
+                                                </button>
+                                                <button
+                                                    onClick={() => setCancelConfirmId(match._id)}
+                                                    className="flex items-center justify-center gap-1 px-3 py-1.5 text-[10px] font-arcade uppercase tracking-wider bg-red-500/5 hover:bg-red-500/15 border border-red-500/20 hover:border-red-500/40 text-red-500/70 hover:text-red-400 rounded-lg transition-all"
+                                                >
+                                                    <X size={10} /> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Main Wizard Container */}
-            <div className="w-full max-w-5xl z-10 relative">
+            <div className="w-full max-w-5xl z-30 relative">
 
                 {/* Header / Progress */}
                 <div className="flex items-center justify-between mb-8">
@@ -177,24 +284,27 @@ const MatchSetup = () => {
                         {step > 0 && (
                             <button
                                 onClick={() => setStep(step - 1)}
-                                className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                                data-nav="true"
+                                data-nav-group={`setup-step-${step}`}
+                                tabIndex={0}
+                                className="p-2 rounded-full hover:bg-green-500/10 text-neutral-400 hover:text-yellow-400 border border-transparent hover:border-yellow-400/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
                                 aria-label="Go back to previous step"
                             >
                                 <ChevronLeft />
                             </button>
                         )}
                         <div>
-                            <h1 className="text-3xl font-black italic tracking-tighter text-white">
+                            <h1 className="text-2xl font-black italic tracking-tighter text-green-400">
                                 {step === 0 && "SELECT PROTOCOL"}
                                 {step === 1 && "CHOOSE COMBATANTS"}
                                 {step === 2 && "FINALIZE PARAMETERS"}
                             </h1>
-                            <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest flex items-center gap-2 mt-1">
-                                <span className={cn(step >= 0 ? "text-green-500" : "text-neutral-700")}>01 Mode</span>
+                            <div className="text-[10px] font-arcade text-neutral-600 uppercase tracking-widest flex items-center gap-2 mt-1">
+                                <span className={cn(step >= 0 ? "text-green-400" : "text-neutral-700")}>01 Mode</span>
                                 <span className="text-neutral-800">/</span>
-                                <span className={cn(step >= 1 ? "text-green-500" : "text-neutral-700")}>02 Players</span>
+                                <span className={cn(step >= 1 ? "text-green-400" : "text-neutral-700")}>02 Players</span>
                                 <span className="text-neutral-800">/</span>
-                                <span className={cn(step >= 2 ? "text-green-500" : "text-neutral-700")}>03 Start</span>
+                                <span className={cn(step >= 2 ? "text-green-400" : "text-neutral-700")}>03 Start</span>
                             </div>
                         </div>
                     </div>
@@ -216,23 +326,28 @@ const MatchSetup = () => {
                                     <button
                                         key={mode._id}
                                         onClick={() => { setModeId(mode._id); setStep(1); }}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-0"
+                                        tabIndex={0}
                                         className={cn(
                                             "group relative bg-neutral-900/40 border-2 rounded-3xl p-8 cursor-pointer transition-all duration-300 text-left outline-none",
                                             "focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:border-green-500",
-                                            modeId === mode._id ? "border-green-500/50 bg-green-950/20 shadow-[0_0_30px_rgba(34,197,94,0.1)]" : "border-white/5 hover:border-white/20 hover:bg-neutral-900/80 hover:shadow-xl"
+                                            modeId === mode._id
+                                                ? "border-green-500/50 bg-green-950/20 shadow-[0_0_30px_rgba(74,222,128,0.08)]"
+                                                : "border-white/5 hover:border-yellow-400/40 hover:bg-neutral-900/80 hover:shadow-xl hover:shadow-purple-900/20"
                                         )}
                                     >
                                         <div className="flex flex-col h-full justify-between">
                                             <div>
-                                                <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-black transition-colors">
-                                                    <Trophy size={24} />
+                                                <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mb-6 group-hover:bg-yellow-400/10 group-hover:border group-hover:border-yellow-400/40 transition-colors">
+                                                    <Trophy size={24} className="text-neutral-400 group-hover:text-yellow-400 transition-colors" />
                                                 </div>
-                                                <h3 className="text-2xl font-black italic uppercase mb-2 text-white group-hover:text-green-400 transition-colors">{mode.name}</h3>
+                                                <h3 className="text-2xl font-black italic uppercase mb-2 text-white group-hover:text-yellow-400 transition-colors">{mode.name}</h3>
                                                 <p className="text-neutral-500 text-sm leading-relaxed">{mode.rulesDescription || "Standard competitive table tennis rules."}</p>
                                             </div>
-                                            <div className="mt-8 pt-6 border-t border-white/5 flex gap-4 text-xs font-mono uppercase text-neutral-400">
-                                                <span className="flex items-center gap-1"><span className="text-white font-bold">{mode.pointsToWin}</span> Pts</span>
-                                                <span className="flex items-center gap-1"><span className="text-white font-bold">{mode.servesBeforeChange}</span> Serves</span>
+                                            <div className="mt-8 pt-6 border-t border-white/5 flex gap-4 text-xs font-arcade uppercase text-neutral-500">
+                                                <span className="flex items-center gap-1"><span className="text-green-400 font-bold">{mode.pointsToWin}</span> Pts</span>
+                                                <span className="flex items-center gap-1"><span className="text-green-300 font-bold">{mode.servesBeforeChange}</span> Serves</span>
                                             </div>
                                         </div>
                                     </button>
@@ -247,31 +362,37 @@ const MatchSetup = () => {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="bg-neutral-900/30 border border-white/5 rounded-3xl p-8 backdrop-blur-sm"
+                                className="bg-neutral-900/30 border border-green-500/10 rounded-3xl p-8 backdrop-blur-sm"
                             >
                                 {/* MATCH TYPE TOGGLE */}
                                 <div className="flex justify-center mb-8">
-                                    <div className="bg-neutral-800 p-1 rounded-lg inline-flex relative">
+                                    <div className="bg-neutral-800 p-1 rounded-lg inline-flex relative border border-green-500/10">
                                         <div
                                             className={cn(
-                                                "absolute top-1 bottom-1 w-[120px] bg-neutral-700/80 rounded-md transition-all duration-300",
+                                                "absolute top-1 bottom-1 w-[120px] bg-green-500/15 border border-green-500/30 rounded-md transition-all duration-300",
                                                 isDoubles ? "left-[124px]" : "left-1"
                                             )}
                                         />
                                         <button
                                             onClick={() => setIsDoubles(false)}
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
                                             className={cn(
                                                 "relative w-[120px] py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors z-10",
-                                                !isDoubles ? "text-white" : "text-neutral-500 hover:text-neutral-300"
+                                                !isDoubles ? "text-green-400" : "text-neutral-500 hover:text-neutral-300"
                                             )}
                                         >
                                             <User size={14} /> Singles
                                         </button>
                                         <button
                                             onClick={() => setIsDoubles(true)}
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
                                             className={cn(
                                                 "relative w-[120px] py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors z-10",
-                                                isDoubles ? "text-white" : "text-neutral-500 hover:text-neutral-300"
+                                                isDoubles ? "text-green-400" : "text-neutral-500 hover:text-neutral-300"
                                             )}
                                         >
                                             <Users size={14} /> Doubles
@@ -282,8 +403,8 @@ const MatchSetup = () => {
                                 <div className="grid grid-cols-1 lg:grid-cols-11 gap-8 items-center">
                                     {/* TEAM 1 */}
                                     <div className="lg:col-span-5 space-y-4">
-                                        <h3 className="text-sm font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-                                            <User size={14} className="text-blue-500" /> {isDoubles ? "Team Blue" : "Challenger 01"}
+                                        <h3 className="text-xs font-arcade text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                                            <User size={14} className="text-green-400" /> {isDoubles ? "Team Blue" : "Challenger 01"}
                                         </h3>
                                         <GameSelect
                                             label=""
@@ -293,6 +414,7 @@ const MatchSetup = () => {
                                             onChange={setP1}
                                             type="user"
                                             disabledValues={[p2, p3, p4].filter(Boolean)}
+                                            navGroup="setup-step-1"
                                         />
                                         {isDoubles && (
                                             <GameSelect
@@ -303,30 +425,34 @@ const MatchSetup = () => {
                                                 onChange={setP3}
                                                 type="user"
                                                 disabledValues={[p1, p2, p4].filter(Boolean)}
+                                                navGroup="setup-step-1"
                                             />
                                         )}
                                     </div>
 
                                     {/* VS / Swap */}
                                     <div className="lg:col-span-1 flex flex-col items-center justify-center py-4">
-                                        <div className="w-px h-12 bg-white/10 lg:hidden"></div>
+                                        <div className="w-px h-12 bg-green-500/20 lg:hidden"></div>
                                         <button
                                             onClick={() => {
                                                 const t1 = p1; setP1(p2); setP2(t1);
                                                 if (isDoubles) { const t3 = p3; setP3(p4); setP4(t3); }
                                             }}
-                                            className="p-3 rounded-full bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 hover:border-neutral-500 transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                            data-nav="true"
+                                            data-nav-group="setup-step-1"
+                                            tabIndex={0}
+                                            className="p-3 rounded-full bg-neutral-800 border border-green-500/20 hover:bg-green-500/10 hover:border-green-500/50 transition-all active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
                                             aria-label="Swap sides"
                                         >
-                                            <ArrowRightLeft className="text-neutral-400 group-hover:text-white transition-colors group-hover:rotate-180 duration-500" size={20} />
+                                            <ArrowRightLeft className="text-neutral-400 group-hover:text-yellow-400 transition-colors group-hover:rotate-180 duration-500" size={20} />
                                         </button>
-                                        <div className="w-px h-12 bg-white/10 lg:hidden"></div>
+                                        <div className="w-px h-12 bg-green-500/20 lg:hidden"></div>
                                     </div>
 
                                     {/* TEAM 2 */}
                                     <div className="lg:col-span-5 space-y-4">
-                                        <h3 className="text-sm font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-2">
-                                            <User size={14} className="text-red-500" /> {isDoubles ? "Team Red" : "Challenger 02"}
+                                        <h3 className="text-xs font-arcade text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                                            <User size={14} className="text-green-400" /> {isDoubles ? "Team Red" : "Challenger 02"}
                                         </h3>
                                         <GameSelect
                                             label=""
@@ -336,6 +462,7 @@ const MatchSetup = () => {
                                             onChange={setP2}
                                             type="user"
                                             disabledValues={[p1, p3, p4].filter(Boolean)}
+                                            navGroup="setup-step-1"
                                         />
                                         {isDoubles && (
                                             <GameSelect
@@ -346,29 +473,36 @@ const MatchSetup = () => {
                                                 onChange={setP4}
                                                 type="user"
                                                 disabledValues={[p1, p2, p3].filter(Boolean)}
+                                                navGroup="setup-step-1"
                                             />
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="mt-12 flex justify-between items-center border-t border-white/5 pt-8">
+                                <div className="mt-12 flex justify-between items-center border-t border-green-500/10 pt-8">
                                     <Button
                                         variant="ghost"
+                                        data-nav="true"
+                                        data-nav-group="setup-step-1"
+                                        tabIndex={0}
                                         onClick={() => setIsUserDialogOpen(true)}
-                                        className="text-neutral-500 hover:text-white hover:bg-white/5"
+                                        className="text-neutral-500 hover:text-yellow-400 hover:bg-green-500/5 border border-transparent hover:border-green-500/20"
                                     >
                                         <Plus className="mr-2 h-4 w-4" /> Register New Player
                                     </Button>
-                                    <Button
+                                    <button
                                         onClick={() => setStep(2)}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-1"
+                                        tabIndex={0}
                                         disabled={!p1 || !p2 || (isDoubles && (!p3 || !p4))}
                                         className={cn(
-                                            "bg-white text-black hover:bg-neutral-200 font-bold px-8 h-12 text-lg transition-all",
-                                            (!p1 || !p2 || (isDoubles && (!p3 || !p4))) ? "opacity-50 cursor-not-allowed" : "shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                                            "arcade-btn px-8 h-12 text-sm flex items-center gap-2 transition-all",
+                                            (!p1 || !p2 || (isDoubles && (!p3 || !p4))) ? "opacity-40 cursor-not-allowed" : ""
                                         )}
                                     >
-                                        Done <ChevronRight className="ml-2" />
-                                    </Button>
+                                        Done <ChevronRight size={16} />
+                                    </button>
                                 </div>
                             </motion.div>
                         )}
@@ -383,39 +517,53 @@ const MatchSetup = () => {
                                 className="max-w-2xl mx-auto space-y-8"
                             >
                                 {/* Summary Card */}
-                                <div className="bg-neutral-900/50 border border-white/10 rounded-2xl p-6 flex items-center justify-between">
+                                <div className="bg-neutral-900/50 border border-green-500/15 rounded-2xl p-6 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 rounded-xl bg-neutral-800">
-                                            <Trophy size={20} className="text-neutral-400" />
+                                        <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20">
+                                            <Trophy size={20} className="text-green-400" />
                                         </div>
                                         <div>
-                                            <div className="text-sm text-neutral-500 uppercase font-bold">Protocol</div>
+                                            <div className="text-[10px] font-arcade text-neutral-500 uppercase tracking-wider">Protocol</div>
                                             <div className="text-xl font-bold text-white">{gameModes.find(m => m._id === modeId)?.name}</div>
                                         </div>
                                     </div>
-                                    <Button size="sm" variant="ghost" className="text-neutral-500 hover:text-white" onClick={() => setStep(0)}>Change</Button>
+                                    <button
+                                        data-nav="true"
+                                        data-nav-group="setup-step-2"
+                                        tabIndex={0}
+                                        className="text-xs font-arcade text-neutral-500 hover:text-yellow-400 transition-colors px-3 py-1.5 border border-neutral-700 hover:border-yellow-400/40 rounded"
+                                        onClick={() => setStep(0)}
+                                    >
+                                        Change
+                                    </button>
                                 </div>
 
                                 {/* Rules Config */}
-                                <div className="bg-neutral-900/50 border border-white/10 rounded-2xl p-6 space-y-6">
+                                <div className="bg-neutral-900/50 border border-green-500/10 rounded-2xl p-6 space-y-6">
                                     <div className="flex items-center gap-2 mb-4">
-                                        <Settings size={18} className="text-neutral-500" />
-                                        <h3 className="font-bold text-neutral-300 uppercase tracking-widest text-sm">Fine-Tune Rules</h3>
+                                        <Settings size={18} className="text-green-400/60" />
+                                        <h3 className="text-xs font-arcade text-neutral-400 uppercase tracking-widest">Fine-Tune Rules</h3>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-3">
-                                            <label className="text-xs text-neutral-500 font-bold uppercase">Service Style</label>
-                                            <div className="flex bg-neutral-900/80 p-1 rounded-lg border border-white/5">
+                                            <label className="text-[10px] font-arcade text-neutral-500 uppercase">Service Style</label>
+                                            <div className="flex bg-neutral-900/80 p-1 rounded-lg border border-green-500/10">
                                                 <button
                                                     onClick={() => setServeType('free')}
-                                                    className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50", serveType === 'free' ? "bg-neutral-800 text-white shadow-md" : "text-neutral-500 hover:text-white")}
+                                                    data-nav="true"
+                                                    data-nav-group="setup-step-2"
+                                                    tabIndex={0}
+                                                    className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50", serveType === 'free' ? "bg-green-500/15 text-green-400 border border-green-500/30 shadow-md" : "text-neutral-500 hover:text-white")}
                                                 >
                                                     FREE
                                                 </button>
                                                 <button
                                                     onClick={() => setServeType('cross')}
-                                                    className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50", serveType === 'cross' ? "bg-neutral-800 text-purple-400 shadow-md" : "text-neutral-500 hover:text-white")}
+                                                    data-nav="true"
+                                                    data-nav-group="setup-step-2"
+                                                    tabIndex={0}
+                                                    className={cn("flex-1 py-2 text-xs font-bold rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50", serveType === 'cross' ? "bg-green-500/15 text-green-300 border border-green-500/30 shadow-md" : "text-neutral-500 hover:text-white")}
                                                 >
                                                     CROSS
                                                 </button>
@@ -423,11 +571,11 @@ const MatchSetup = () => {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-xs text-neutral-500 font-bold uppercase">Deuce Serves</label>
+                                            <label className="text-[10px] font-arcade text-neutral-500 uppercase">Deuce Serves</label>
                                             <div className="flex items-center gap-3">
-                                                <button onClick={() => setServesInDeuce(Math.max(1, servesInDeuce - 1))} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">-</button>
-                                                <div className="flex-1 text-center font-mono font-bold text-xl">{servesInDeuce}</div>
-                                                <button onClick={() => setServesInDeuce(servesInDeuce + 1)} className="w-10 h-10 rounded-lg bg-neutral-900 border border-white/5 hover:bg-neutral-800 text-white flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50">+</button>
+                                                <button onClick={() => setServesInDeuce(Math.max(1, servesInDeuce - 1))} data-nav="true" data-nav-group="setup-step-2" tabIndex={0} className="w-10 h-10 rounded-lg bg-neutral-900 border border-green-500/20 hover:bg-green-500/10 hover:border-green-500/50 text-green-400 flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50">-</button>
+                                                <div className="flex-1 text-center font-arcade font-bold text-xl text-green-400">{servesInDeuce}</div>
+                                                <button onClick={() => setServesInDeuce(servesInDeuce + 1)} data-nav="true" data-nav-group="setup-step-2" tabIndex={0} className="w-10 h-10 rounded-lg bg-neutral-900 border border-green-500/20 hover:bg-green-500/10 hover:border-green-500/50 text-green-400 flex items-center justify-center font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -435,15 +583,24 @@ const MatchSetup = () => {
 
                                 {/* START BUTTON */}
                                 <div className="pt-4 relative group">
-                                    <Button
-                                        ref={startButtonRef}
-                                        className="absolute inset-0 w-full h-20 opacity-0 z-50 cursor-pointer"
-                                        onClick={handleStart}
-                                    />
-                                    <div className="w-full h-20 bg-green-600 rounded-xl flex items-center justify-center gap-4 group-hover:bg-green-500 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all duration-300">
-                                        <Swords size={28} className="text-black" />
-                                        <span className="text-3xl font-black italic text-black tracking-tighter">FIGHT</span>
+                                    <div className={cn(
+                                        "w-full h-20 border-2 border-green-500 rounded-xl flex items-center justify-center gap-4 transition-all duration-300",
+                                        "bg-transparent",
+                                        "group-hover:bg-yellow-400/5 group-hover:scale-[1.02] group-hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]",
+                                        "group-focus-within:border-yellow-400 group-focus-within:ring-2 group-focus-within:ring-yellow-400/40 group-focus-within:ring-offset-2 group-focus-within:ring-offset-black group-focus-within:scale-[1.02] group-focus-within:shadow-[0_0_40px_rgba(234,179,8,0.4)]"
+                                    )}>
+                                        <Swords size={28} className="text-green-400" />
+                                        <span className="text-3xl font-arcade text-green-400 tracking-widest" style={{ fontSize: '1.2rem' }}>FIGHT</span>
                                     </div>
+                                    <button
+                                        ref={startButtonRef}
+                                        data-nav="true"
+                                        data-nav-group="setup-step-2"
+                                        tabIndex={0}
+                                        onClick={handleStart}
+                                        className="absolute inset-0 w-full h-20 opacity-0 z-10 cursor-pointer focus:outline-none"
+                                        aria-label="Start fight"
+                                    />
                                 </div>
 
                             </motion.div>
@@ -455,25 +612,25 @@ const MatchSetup = () => {
 
             {/* Create User Dialog */}
             <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
-                <DialogContent className="bg-[#0f0f0f] text-white border-neutral-800 sm:max-w-md p-6">
+                <DialogContent className="bg-[#0a0a0a] text-white border border-green-500/30 sm:max-w-md p-6 shadow-[0_0_40px_rgba(74,222,128,0.1)]">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-black italic uppercase">New Challenger</DialogTitle>
-                        <DialogDescription className="text-neutral-500">Initialize a new combat profile.</DialogDescription>
+                        <DialogTitle className="font-arcade text-base text-green-400 uppercase tracking-wider">New Challenger</DialogTitle>
+                        <DialogDescription className="text-neutral-500 text-xs">Initialize a new combat profile.</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-6 py-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Codename</label>
+                            <label className="text-[10px] font-arcade text-neutral-500 uppercase tracking-wider">Codename</label>
                             <Input
                                 value={newUserName}
                                 onChange={(e) => setNewUserName(e.target.value)}
                                 placeholder="Enter name..."
-                                className="bg-neutral-900 border-neutral-800 focus:border-white/20 h-10 font-bold text-white"
+                                className="bg-neutral-900 border-green-500/20 focus:border-yellow-400/50 h-10 font-bold text-white"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Energy Signature</label>
+                            <label className="text-[10px] font-arcade text-neutral-500 uppercase tracking-wider">Energy Signature</label>
                             <div className="flex gap-2 flex-wrap">
                                 {AVAILABLE_COLORS.map((color) => (
                                     <button
@@ -491,8 +648,8 @@ const MatchSetup = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Emblem</label>
-                            <div className="grid grid-cols-6 gap-2 bg-neutral-900/50 p-3 rounded-xl border border-neutral-800 max-h-[150px] overflow-y-auto custom-scrollbar">
+                            <label className="text-[10px] font-arcade text-neutral-500 uppercase tracking-wider">Emblem</label>
+                            <div className="grid grid-cols-6 gap-2 bg-neutral-900/50 p-3 rounded-xl border border-green-500/15 max-h-[150px] overflow-y-auto custom-scrollbar">
                                 {AVAILABLE_ICONS.map(({ id, component: Icon }) => (
                                     <button
                                         key={id}
@@ -500,7 +657,7 @@ const MatchSetup = () => {
                                         className={cn(
                                             "aspect-square rounded-lg flex items-center justify-center transition-all",
                                             newUserIcon === id
-                                                ? "bg-neutral-800 text-white ring-1 ring-white/50 shadow-lg"
+                                                ? "bg-green-500/20 text-green-400 ring-1 ring-green-500/50 shadow-lg"
                                                 : "text-neutral-600 hover:bg-neutral-800 hover:text-white"
                                         )}
                                     >
@@ -512,13 +669,43 @@ const MatchSetup = () => {
                     </div>
 
                     <DialogFooter>
-                        <Button
+                        <button
                             onClick={handleCreateUser}
                             disabled={!newUserName.trim() || creatingUser}
-                            className="w-full bg-white text-black hover:bg-neutral-200 font-bold h-11"
+                            className={cn("arcade-btn w-full h-11 text-xs tracking-widest", (!newUserName.trim() || creatingUser) ? "opacity-40 cursor-not-allowed" : "")}
                         >
                             {creatingUser ? "INITIALIZING..." : "INITIALIZE UNIT"}
-                        </Button>
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Cancel Match Confirm Dialog */}
+            <Dialog open={cancelConfirmId !== null} onOpenChange={(open: boolean) => { if (!open) setCancelConfirmId(null); }}>
+                <DialogContent className="bg-[#0a0a0a] text-white border border-red-500/30 sm:max-w-sm p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+                    <DialogHeader>
+                        <DialogTitle className="font-arcade text-base text-red-400 uppercase tracking-wider">Abandon Battle?</DialogTitle>
+                        <DialogDescription className="text-neutral-500 text-xs">
+                            This match will be marked as abandoned and cannot be resumed. All progress will be lost.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 pt-4">
+                        <button
+                            onClick={() => setCancelConfirmId(null)}
+                            className="flex-1 py-2 text-xs font-arcade uppercase tracking-wider border border-neutral-700 hover:border-neutral-500 text-neutral-400 hover:text-white rounded-lg transition-all"
+                        >
+                            Keep Fighting
+                        </button>
+                        <button
+                            onClick={() => cancelConfirmId !== null && handleCancelMatch(cancelConfirmId)}
+                            disabled={isCancelling}
+                            className={cn(
+                                "flex-1 py-2 text-xs font-arcade uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-400 rounded-lg transition-all",
+                                isCancelling ? "opacity-40 cursor-not-allowed" : ""
+                            )}
+                        >
+                            {isCancelling ? "Abandoning..." : "Abandon"}
+                        </button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

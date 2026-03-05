@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Trophy, Swords, Users } from 'lucide-react';
+import { Home, Trophy, Swords, Users, Settings } from 'lucide-react';
 
 const Navbar = () => {
     const location = useLocation();
@@ -15,6 +15,8 @@ const Navbar = () => {
 
             <NavLink
                 to="/"
+                data-nav="true"
+                tabIndex={0}
                 className={({ isActive }) =>
                     `p-3 rounded-full transition-all duration-300 hover:bg-neutral-800 ${
                         isActive ? 'bg-blue-600/20 text-blue-400 scale-110' : 'text-neutral-400'
@@ -29,6 +31,8 @@ const Navbar = () => {
 
             <NavLink
                 to="/hall-of-fame"
+                data-nav="true"
+                tabIndex={0}
                 className={({ isActive }) =>
                     `p-3 rounded-full transition-all duration-300 hover:bg-neutral-800 ${
                         isActive ? 'bg-yellow-600/20 text-yellow-400 scale-110' : 'text-neutral-400'
@@ -43,6 +47,8 @@ const Navbar = () => {
 
             <NavLink
                 to="/players"
+                data-nav="true"
+                tabIndex={0}
                 className={({ isActive }) =>
                     `p-3 rounded-full transition-all duration-300 hover:bg-neutral-800 ${
                         isActive ? 'bg-purple-600/20 text-purple-400 scale-110' : 'text-neutral-400'
@@ -55,6 +61,8 @@ const Navbar = () => {
 
             <NavLink
                 to="/setup"
+                data-nav="true"
+                tabIndex={0}
                 className={({ isActive }) =>
                     `p-3 rounded-full transition-all duration-300 hover:bg-neutral-800 ${
                         isActive ? 'bg-red-600/20 text-red-400 scale-110' : 'text-neutral-400'
@@ -63,6 +71,22 @@ const Navbar = () => {
                 title="New Match"
             >
                 <Swords size={24} />
+            </NavLink>
+
+            <div className="w-px h-6 bg-neutral-700 mx-2"></div>
+
+            <NavLink
+                to="/settings"
+                data-nav="true"
+                tabIndex={0}
+                className={({ isActive }) =>
+                    `p-3 rounded-full transition-all duration-300 hover:bg-neutral-800 ${
+                        isActive ? 'bg-neutral-600/20 text-neutral-300 scale-110' : 'text-neutral-400'
+                    }`
+                }
+                title="Settings"
+            >
+                <Settings size={24} />
             </NavLink>
 
         </nav>

@@ -167,3 +167,15 @@ pub struct RecentMatch {
     pub mode_name: String,
 }
 
+// --- Key Binding ---
+#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct KeyBinding {
+    #[serde(rename = "_id")]
+    pub id: i64,
+    pub action: String,
+    pub key_code: String,
+    pub label: String,
+    pub is_default: bool,
+}
+

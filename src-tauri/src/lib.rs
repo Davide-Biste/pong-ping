@@ -7,6 +7,8 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_updater::Builder::new().build())
+    .plugin(tauri_plugin_process::init())
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -39,7 +41,12 @@ pub fn run() {
         commands::get_user_matches,
         commands::set_first_server,
         commands::cancel_match,
-        commands::get_user_statistics
+        commands::get_open_matches,
+        commands::get_user_statistics,
+        commands::get_key_bindings,
+        commands::set_key_binding,
+        commands::delete_key_binding,
+        commands::reset_key_bindings
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
