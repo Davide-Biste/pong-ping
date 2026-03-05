@@ -36,9 +36,14 @@ sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" "$PACKAGE_JSON
 rm "$PACKAGE_JSON.bak"
 echo "  ✓ package.json"
 
+# ── Cargo.lock ───────────────────────────────────────────────────────────────
+cd "$ROOT/src-tauri"
+cargo generate-lockfile 2>/dev/null
+echo "  ✓ src-tauri/Cargo.lock"
+
 # ── Commit ───────────────────────────────────────────────────────────────────
 cd "$ROOT"
-git add src-tauri/tauri.conf.json src-tauri/Cargo.toml package.json
+git add src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock package.json
 git commit -m "🔖 bump version to $VERSION"
 
 echo ""
