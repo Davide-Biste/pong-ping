@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.2.6"
+version = "0.2.0"
 description = "Pong Ping app built with Tauri and Rust"
 authors = ["you"]
 license = ""
