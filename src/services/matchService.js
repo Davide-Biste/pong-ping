@@ -31,5 +31,8 @@ export const matchService = {
     setFirstServer: async (matchId, playerId) => {
         // Rust expects first_server_id as firstServerId (camelCase)
         return await invoke('set_first_server', { id: Number(matchId), firstServerId: Number(playerId) });
+    },
+    getOpenMatches: async () => {
+        return await invoke('get_open_matches');
     }
 };

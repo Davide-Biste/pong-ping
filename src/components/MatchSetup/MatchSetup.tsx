@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button as ButtonOriginal } from "@/components/ui/button";
 import { Dialog as DialogOriginal, DialogContent as DialogContentOriginal, DialogHeader as DialogHeaderOriginal, DialogTitle as DialogTitleOriginal, DialogDescription as DialogDescriptionOriginal, DialogFooter as DialogFooterOriginal } from "@/components/ui/dialog";
 import { Input as InputOriginal } from "@/components/ui/input";
-import { Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users } from "lucide-react";
+import { Plus, Swords, ArrowRightLeft, ChevronRight, ChevronLeft, Settings, Trophy, User, Users, Zap, X, Play } from "lucide-react";
 import { userService } from "@/services/userService";
 import { gameModeService } from "@/services/gameModeService";
 import { matchService } from "@/services/matchService";
@@ -14,6 +14,17 @@ import GameSelect from "@/components/GameSelect.tsx";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpatialNav } from '@/hooks/useSpatialNav';
 import { useAction } from '@/hooks/useAction';
+
+type OpenMatch = {
+    _id: number;
+    player1: { name: string; color?: string; icon?: string };
+    player2: { name: string; color?: string; icon?: string };
+    player3?: { name: string } | null;
+    player4?: { name: string } | null;
+    score: { p1: number; p2: number };
+    startTime: string;
+    gameMode: { name: string };
+};
 
 // Bypass TS checks for JS components
 const Button = ButtonOriginal as any;
@@ -45,6 +56,11 @@ const MatchSetup = () => {
     // New Match Config Overrides
     const [serveType, setServeType] = useState('free');
     const [servesInDeuce, setServesInDeuce] = useState(1);
+
+    // Open matches state
+    const [openMatches, setOpenMatches] = useState<OpenMatch[]>([]);
+    const [cancelConfirmId, setCancelConfirmId] = useState<number | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     // Update defaults when mode changes
     useEffect(() => {
@@ -80,15 +96,33 @@ const MatchSetup = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [u, m] = await Promise.all([userService.getAll(), gameModeService.getAll()]);
+                const [u, m, om] = await Promise.all([
+                    userService.getAll(),
+                    gameModeService.getAll(),
+                    matchService.getOpenMatches(),
+                ]);
                 setUsers(u || []);
                 setGameModes(m || []);
+                setOpenMatches(om || []);
             } catch (e) {
                 console.error("Error loading data", e);
             }
         };
         loadData();
     }, []);
+
+    const handleCancelMatch = async (matchId: number) => {
+        setIsCancelling(true);
+        try {
+            await matchService.cancelMatch(matchId);
+            setOpenMatches(prev => prev.filter(m => m._id !== matchId));
+        } catch (err) {
+            console.error("Failed to cancel match", err);
+        } finally {
+            setIsCancelling(false);
+            setCancelConfirmId(null);
+        }
+    };
 
     // Focus start button on step 2
     useEffect(() => {
@@ -177,6 +211,64 @@ const MatchSetup = () => {
                                 <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden mt-8">
                                     <div className="h-full bg-gradient-to-r from-green-500 to-green-300 shadow-[0_0_15px_#4ade80] animate-[loading_2.5s_ease-in-out_forwards]" style={{ width: '0%' }}></div>
                                 </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Active Matches Panel */}
+            <AnimatePresence>
+                {openMatches.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -16 }}
+                        className="fixed top-4 right-4 z-40 w-80"
+                    >
+                        <div className="bg-neutral-900/95 border border-yellow-400/30 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(234,179,8,0.1)] backdrop-blur-xl">
+                            <div className="px-4 py-3 border-b border-yellow-400/20 flex items-center gap-2">
+                                <Zap size={14} className="text-yellow-400 animate-pulse" />
+                                <span className="text-[10px] font-arcade text-yellow-400 uppercase tracking-widest">Active Battles</span>
+                                <span className="ml-auto text-[10px] font-arcade text-neutral-500">{openMatches.length}</span>
+                            </div>
+                            <div className="divide-y divide-white/5 max-h-72 overflow-y-auto custom-scrollbar">
+                                {openMatches.map(match => {
+                                    const team1 = match.player3
+                                        ? `${match.player1.name} & ${match.player3.name}`
+                                        : match.player1.name;
+                                    const team2 = match.player4
+                                        ? `${match.player2.name} & ${match.player4.name}`
+                                        : match.player2.name;
+                                    return (
+                                        <div key={match._id} className="px-4 py-3 hover:bg-white/3 transition-colors">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[9px] font-arcade text-neutral-600 uppercase">{match.gameMode.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-xs font-bold text-white truncate flex-1">{team1}</span>
+                                                <span className="text-sm font-arcade text-yellow-400 tabular-nums shrink-0">
+                                                    {match.score.p1} — {match.score.p2}
+                                                </span>
+                                                <span className="text-xs font-bold text-white truncate flex-1 text-right">{team2}</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => navigate(`/game/${match._id}`)}
+                                                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-arcade uppercase tracking-wider bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 hover:border-green-500/60 text-green-400 rounded-lg transition-all"
+                                                >
+                                                    <Play size={10} /> Resume
+                                                </button>
+                                                <button
+                                                    onClick={() => setCancelConfirmId(match._id)}
+                                                    className="flex items-center justify-center gap-1 px-3 py-1.5 text-[10px] font-arcade uppercase tracking-wider bg-red-500/5 hover:bg-red-500/15 border border-red-500/20 hover:border-red-500/40 text-red-500/70 hover:text-red-400 rounded-lg transition-all"
+                                                >
+                                                    <X size={10} /> Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </motion.div>
@@ -583,6 +675,36 @@ const MatchSetup = () => {
                             className={cn("arcade-btn w-full h-11 text-xs tracking-widest", (!newUserName.trim() || creatingUser) ? "opacity-40 cursor-not-allowed" : "")}
                         >
                             {creatingUser ? "INITIALIZING..." : "INITIALIZE UNIT"}
+                        </button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Cancel Match Confirm Dialog */}
+            <Dialog open={cancelConfirmId !== null} onOpenChange={(open: boolean) => { if (!open) setCancelConfirmId(null); }}>
+                <DialogContent className="bg-[#0a0a0a] text-white border border-red-500/30 sm:max-w-sm p-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+                    <DialogHeader>
+                        <DialogTitle className="font-arcade text-base text-red-400 uppercase tracking-wider">Abandon Battle?</DialogTitle>
+                        <DialogDescription className="text-neutral-500 text-xs">
+                            This match will be marked as abandoned and cannot be resumed. All progress will be lost.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 pt-4">
+                        <button
+                            onClick={() => setCancelConfirmId(null)}
+                            className="flex-1 py-2 text-xs font-arcade uppercase tracking-wider border border-neutral-700 hover:border-neutral-500 text-neutral-400 hover:text-white rounded-lg transition-all"
+                        >
+                            Keep Fighting
+                        </button>
+                        <button
+                            onClick={() => cancelConfirmId !== null && handleCancelMatch(cancelConfirmId)}
+                            disabled={isCancelling}
+                            className={cn(
+                                "flex-1 py-2 text-xs font-arcade uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 text-red-400 rounded-lg transition-all",
+                                isCancelling ? "opacity-40 cursor-not-allowed" : ""
+                            )}
+                        >
+                            {isCancelling ? "Abandoning..." : "Abandon"}
                         </button>
                     </DialogFooter>
                 </DialogContent>
