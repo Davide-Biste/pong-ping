@@ -12,6 +12,7 @@ import KeyBindingsSettings from './components/KeyBindingsSettings';
 import Navbar from './components/Navbar';
 import Balatro from './components/react-bits/Balatro';
 import LoadingScreen from './components/LoadingScreen';
+import UpdateDialog from './components/UpdateDialog';
 import { BadgeAlert } from 'lucide-react';
 
 const BALATRO_COLORS = {
@@ -73,6 +74,9 @@ function App() {
 
         {/* Loading splash */}
         <AnimatePresence>{isLoading && <LoadingScreen />}</AnimatePresence>
+
+        {/* Update dialog */}
+        <UpdateDialog />
 
         {/* App content */}
         <div

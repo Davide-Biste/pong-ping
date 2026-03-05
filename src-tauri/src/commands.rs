@@ -558,6 +558,22 @@ pub async fn cancel_match(state: State<'_, AppState>, id: i64) -> Result<(), Str
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn get_open_matches(state: State<'_, AppState>) -> Result<Vec<PopulatedMatch>, String> {
+    let matches: Vec<Match> = sqlx::query_as(
+        "SELECT * FROM matches WHERE status = 'in_progress' ORDER BY start_time DESC"
+    )
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| e.to_string())?;
+
+    let mut populated = Vec::new();
+    for m in matches {
+        populated.push(populate_match(&state.db, m).await?);
+    }
+    Ok(populated)
+}
 #[tauri::command]
 pub async fn get_user_statistics(state: State<'_, AppState>, user_id: i64) -> Result<UserStatistics, String> {
     // 1. Fetch user to ensure exists
