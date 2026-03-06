@@ -13,7 +13,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-22.04, windows-latest]
+        include:
+          - platform: ubuntu-22.04
+            args: ''
+            rust-targets: ''
+          - platform: windows-latest
+            args: ''
+            rust-targets: ''
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+            rust-targets: 'aarch64-apple-darwin,x86_64-apple-darwin'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -31,6 +40,8 @@ jobs:
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
 
       # Necessary dependencies for building Tauri apps on Linux
       - name: install dependencies (ubuntu only)
@@ -56,6 +67,7 @@ jobs:
           releaseBody: "Release ${{ github.ref_name }} of Ping Pong Counter"
           releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }}
 
       # Upload Manuale degli Asset (Linux + Windows)
       - name: Upload Assets
