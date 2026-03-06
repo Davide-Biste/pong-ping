@@ -27,7 +27,8 @@
     "targets": [
       "deb",
       "appimage",
-      "msi"
+      "msi",
+      "dmg"
     ],
     "active": true,
     "icon": [
