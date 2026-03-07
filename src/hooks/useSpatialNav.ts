@@ -49,10 +49,12 @@ export function useSpatialNav(groupId: string = 'default') {
             }
             if (!isValid) continue;
 
-            // Weighted distance: penalize offset on perpendicular axis
+            // Weighted distance: penalize offset on perpendicular axis.
+            // Horizontal nav uses high vertical penalty to stay on the same row.
+            // Vertical nav uses lower horizontal penalty to allow reaching centered elements.
             const dist = (direction === 'up' || direction === 'down')
                 ? Math.abs(dy) + Math.abs(dx) * 2
-                : Math.abs(dx) + Math.abs(dy) * 2;
+                : Math.abs(dx) + Math.abs(dy) * 5;
 
             if (dist < bestDist) {
                 bestDist = dist;

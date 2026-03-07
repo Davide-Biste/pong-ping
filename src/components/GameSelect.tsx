@@ -101,14 +101,6 @@ const GameSelect = ({
     };
 
     const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(true);
-            return;
-        }
-
-        // Permetti Enter/Space di aprire quando chiuso, ma previeni quando aperto
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             e.stopPropagation();

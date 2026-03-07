@@ -24,7 +24,7 @@ const KeyBindingsSettings = () => {
     useSpatialNav('settings');
     useAction('back', () => {
         if (capturingAction) setCapturingAction(null);
-        else navigate('/');
+        else navigate('/settings');
     }, [capturingAction]);
 
     const loadBindings = useCallback(async () => {
@@ -90,38 +90,41 @@ const KeyBindingsSettings = () => {
 
     const renderSection = (title: string, items: GroupedBindings[]) => (
         <div className="space-y-3">
-            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest">{title}</h3>
+            <h3 className="text-xs font-arcade text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                <Keyboard size={12} /> {title}
+            </h3>
             {items.map(({ action, label, bindings: actionBindings }) => (
                 <div
                     key={action}
                     className="flex items-center justify-between bg-neutral-900/60 border border-white/5 rounded-xl px-5 py-4"
                 >
                     <div className="flex-1">
-                        <div className="text-sm font-bold text-white">{label}</div>
-                        <div className="text-xs text-neutral-500 font-mono">{action}</div>
+                        <div className="font-arcade text-white" style={{ fontSize: '0.55rem' }}>{label.toUpperCase()}</div>
+                        <div className="text-neutral-600 font-mono mt-1" style={{ fontSize: '0.5rem' }}>{action}</div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap justify-end">
                         {actionBindings.map(b => (
                             <div
                                 key={b._id}
-                                className="flex items-center gap-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 text-xs font-mono text-neutral-300"
+                                className="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-1.5 font-arcade text-neutral-300"
+                                style={{ fontSize: '0.5rem' }}
                             >
-                                <Keyboard size={12} className="text-neutral-500" />
+                                <Keyboard size={11} className="text-neutral-500" />
                                 {b.label || b.keyCode}
                                 <button
                                     onClick={() => handleDelete(b._id)}
                                     className="ml-1 text-neutral-600 hover:text-red-400 transition-colors"
                                 >
-                                    <X size={12} />
+                                    <X size={11} />
                                 </button>
                             </div>
                         ))}
 
                         {capturingAction === action ? (
-                            <div className="flex items-center gap-2 bg-green-900/30 border border-green-500/50 rounded-lg px-3 py-1.5 text-xs font-mono text-green-400 animate-pulse">
-                                <Keyboard size={12} />
-                                Premi un tasto...
+                            <div className="flex items-center gap-2 bg-green-900/30 border border-green-500/50 rounded-lg px-3 py-1.5 font-arcade text-green-400 animate-pulse" style={{ fontSize: '0.5rem' }}>
+                                <Keyboard size={11} />
+                                PREMI UN TASTO...
                             </div>
                         ) : (
                             <button
@@ -129,7 +132,7 @@ const KeyBindingsSettings = () => {
                                 data-nav="true"
                                 data-nav-group="settings"
                                 tabIndex={0}
-                                className="p-1.5 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+                                className="p-1.5 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
                             >
                                 <Plus size={14} />
                             </button>
@@ -141,52 +144,56 @@ const KeyBindingsSettings = () => {
     );
 
     return (
-        <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center font-sans selection:bg-neutral-500/30">
-            {/* Header */}
-            <div className="w-full max-w-3xl flex items-center justify-between mb-10 animate-in slide-in-from-top-4 duration-500">
-                <div className="flex items-center gap-4">
+        <div className="min-h-screen text-white p-4 md:p-8 flex flex-col items-center font-mono selection:bg-purple-500/30">
+            {/* CRT overlays */}
+            <div className="fixed inset-0 scanlines z-10 pointer-events-none" />
+            <div className="fixed inset-0 crt-vignette z-20 pointer-events-none" />
+
+            <div className="relative z-30 w-full max-w-3xl">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-10">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate('/settings')}
+                            data-nav="true"
+                            data-nav-group="settings"
+                            tabIndex={0}
+                            className="p-3 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                        <div>
+                            <h1 className="font-arcade text-green-400" style={{ fontSize: '1.4rem' }}>REMOTE CONTROL</h1>
+                            <p className="text-neutral-500 text-xs uppercase tracking-widest mt-1">Configura i tasti di gioco</p>
+                        </div>
+                    </div>
+
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={handleReset}
                         data-nav="true"
                         data-nav-group="settings"
                         tabIndex={0}
-                        className="p-3 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-neutral-700 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors font-arcade disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/50"
+                        style={{ fontSize: '0.45rem' }}
                     >
-                        <ArrowLeft size={24} />
+                        <RotateCcw size={12} />
+                        RESET DEFAULT
                     </button>
-                    <div>
-                        <h1 className="text-3xl font-black italic tracking-tighter text-white">REMOTE CONTROL</h1>
-                        <p className="text-neutral-500 font-mono text-xs uppercase tracking-[0.2em] mt-1">
-                            Configure keyboard bindings
-                        </p>
+                </div>
+
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <Loader2 className="animate-spin text-neutral-500 w-8 h-8" />
                     </div>
-                </div>
-
-                <Button
-                    variant="outline"
-                    onClick={handleReset}
-                    data-nav="true"
-                    data-nav-group="settings"
-                    tabIndex={0}
-                    className="border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800"
-                    disabled={isLoading}
-                >
-                    <RotateCcw size={14} className="mr-2" />
-                    Reset Default
-                </Button>
+                ) : (
+                    <div className="space-y-8 pb-32">
+                        {renderSection('Navigation', navActions)}
+                        {renderSection('General', generalActions)}
+                        {renderSection('Game Actions', gameActions)}
+                    </div>
+                )}
             </div>
-
-            {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader2 className="animate-spin text-neutral-500 w-8 h-8" />
-                </div>
-            ) : (
-                <div className="w-full max-w-3xl space-y-8 pb-32">
-                    {renderSection('Navigation', navActions)}
-                    {renderSection('General', generalActions)}
-                    {renderSection('Game Actions', gameActions)}
-                </div>
-            )}
         </div>
     );
 };
