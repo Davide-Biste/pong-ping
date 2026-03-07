@@ -132,11 +132,11 @@ const PlayerManagement = () => {
                                 style={{ animationDelay: `${idx * 50}ms` }}
                             >
                                 {/* Card Top */}
-                                <div className="h-28 relative overflow-hidden bg-neutral-950/50 rounded-t-2xl">
-                                    {/* Gradient Blob */}
-                                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${theme.gradient} opacity-20 blur-3xl rounded-full transform translate-x-8 -translate-y-8 group-hover:opacity-40 transition-opacity duration-500`} />
-                                    {/* Purple tint */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-transparent" />
+                                <div className="h-28 relative bg-neutral-950/50 rounded-t-2xl overflow-hidden">
+                                    {/* Gradient Blob — sfuma verso il basso */}
+                                    <div className={`absolute -top-4 -right-4 w-40 h-40 bg-gradient-to-br ${theme.gradient} opacity-25 blur-2xl rounded-full group-hover:opacity-45 transition-opacity duration-500`} />
+                                    {/* Fade verso il nero in basso */}
+                                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
                                 </div>
 
                                 {/* Avatar */}
@@ -181,8 +181,6 @@ const PlayerManagement = () => {
                                     </button>
                                 </div>
 
-                                {/* Bottom Color Line */}
-                                <div className={cn("h-px w-full bg-gradient-to-r opacity-40 rounded-b-2xl", theme.gradient)} />
                             </div>
                         );
                     })}

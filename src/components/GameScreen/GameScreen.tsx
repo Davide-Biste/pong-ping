@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button as ButtonOriginal } from "@/components/ui/button";
-import { Trophy, RotateCcw, Home, Check } from "lucide-react";
+import { Trophy, RotateCcw, Home, Check, LogOut, Play, Trash2 } from "lucide-react";
 import Counter from "@/components/react-bits/Counter";
 
 // Bypass TS checks for JS components
@@ -19,14 +19,16 @@ const GameScreen = () => {
     const [match, setMatch] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [rematchSwap, setRematchSwap] = useState(true);
+    const [showExitDialog, setShowExitDialog] = useState(false);
 
     // Determine nav group based on game state
     const navGroup = useMemo(() => {
+        if (showExitDialog) return 'exit-dialog';
         if (!match) return 'game';
         if (match.winner) return 'winner';
         if (!match.firstServer && match.status === 'in_progress') return 'first-server';
         return 'game';
-    }, [match]);
+    }, [match, showExitDialog]);
 
     useSpatialNav(navGroup);
 
@@ -95,18 +97,14 @@ const GameScreen = () => {
     }, []);
 
     useAction('back', () => {
-        if (match?.winner) {
+        if (showExitDialog) {
+            setShowExitDialog(false);
+        } else if (match?.winner) {
             navigate('/');
-        } else if (!match?.firstServer) {
-            navigate('/');
-        } else if (match?.status === 'in_progress') {
-            // During gameplay, back = exit with cancel
-            if (match) {
-                matchService.cancelMatch(id).catch(console.error);
-            }
-            navigate('/');
+        } else {
+            setShowExitDialog(true);
         }
-    }, [match, id]);
+    }, [match, showExitDialog]);
 
     const handleRematch = async () => {
         if (!match) return;
@@ -291,14 +289,26 @@ const GameScreen = () => {
     // We map this to the rotation array.
     serverId = rotationIds[turnIndex % rotationIds.length];
 
-    const handleExit = async () => {
-        if (match && match.status === 'in_progress') {
-            try {
-                await matchService.cancelMatch(id);
-            } catch (err) {
-                console.error("Failed to cancel match", err);
-            }
+const handleExit = () => {
+        if (match?.status === 'in_progress' && !match?.winner) {
+            setShowExitDialog(true);
+        } else {
+            navigate('/');
         }
+    };
+
+    const handleSaveAndExit = () => {
+        setShowExitDialog(false);
+        navigate('/');
+    };
+
+    const handleAbandon = async () => {
+        try {
+            await matchService.cancelMatch(id);
+        } catch (err) {
+            console.error("Failed to abandon match", err);
+        }
+        setShowExitDialog(false);
         navigate('/');
     };
 
@@ -347,12 +357,12 @@ const GameScreen = () => {
 
             <div className="mb-8 z-30 flex flex-col items-center gap-3">
                 {/* TARGET SCORE BADGE */}
-                <div className="relative flex items-center gap-2 px-6 py-2 bg-black/70 backdrop-blur-md border border-green-500/20 rounded-full shadow-[0_0_15px_rgba(74,222,128,0.1)]">
-                    <Trophy size={14} className="text-green-400" />
-                    <span className="font-arcade text-neutral-500 uppercase mr-2" style={{ fontSize: '0.4rem' }}>Target</span>
-                    <span className="text-xl font-black text-green-400 tracking-tighter"
+                <div className="relative flex items-center gap-3 px-8 py-3 bg-black/70 backdrop-blur-md border border-green-500/20 rounded-full shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                    <Trophy size={18} className="text-green-400" />
+                    <span className="font-arcade text-neutral-500 uppercase mr-1" style={{ fontSize: '0.5rem' }}>Target</span>
+                    <span className="text-3xl font-black text-green-400 tracking-tighter"
                         style={{ textShadow: '0 0 10px rgba(74,222,128,0.5)' }}>
-                        {gameMode.pointsToWin || 11} <span className="text-xs font-normal text-neutral-500 ml-0.5">PTS</span>
+                        {gameMode.pointsToWin || 11} <span className="text-sm font-normal text-neutral-500 ml-1">PTS</span>
                     </span>
                 </div>
 
@@ -371,137 +381,160 @@ const GameScreen = () => {
 
 
             {/* Scoreboard */}
-            <div className="flex w-full max-w-6xl justify-between items-center z-30 gap-4 lg:gap-12">
+            <div className="flex w-full max-w-7xl justify-between items-center z-30 gap-4 lg:gap-16 px-4">
 
                 {/* TEAM 1 */}
-                <div
-                    className="flex-1 flex flex-col items-center cursor-pointer group rounded-xl"
-                    data-nav="true"
-                    data-nav-group="game"
-                    tabIndex={0}
-                    onClick={() => handlePoint(player1._id)}
-                >
-                    {/* Serving Indicator Team 1 */}
-                    <div className={`mb-4 text-xl font-bold flex items-center gap-2 ${(serverId === player1._id || (isDoubles && serverId === player3._id)) ? `animate-bounce ${p1Theme.text}` : 'text-neutral-500'}`}>
-                        {(serverId === player1._id || (isDoubles && serverId === player3._id)) ? 'SERVING' : '\u00A0'}
-                    </div>
-
-                    {isDoubles ? (
-                        <div className="w-full flex flex-col items-center gap-4">
-                            {/* Big Score */}
-                            <div className={cn("text-9xl font-black tabular-nums tracking-tighter drop-shadow-2xl", p1Theme.text)}>
-                                {score.p1}
-                            </div>
-                            {/* Players */}
-                            <div className="flex gap-4">
-                                <Card className={cn("relative w-32 h-40 bg-neutral-900/80 border-2 overflow-hidden flex flex-col items-center justify-end p-2 transition-all", serverId === player1._id ? "border-white scale-110 z-10 shadow-xl" : "border-white/10 opacity-80")}>
-                                    <P1Icon className={cn("absolute opacity-20 w-32 h-32 -top-4 -left-4", p1Theme.text)} />
-                                    <div className="z-10 text-center font-bold text-sm truncate w-full">{player1.name}</div>
-                                </Card>
-                                <Card className={cn("relative w-32 h-40 bg-neutral-900/80 border-2 overflow-hidden flex flex-col items-center justify-end p-2 transition-all", serverId === player3._id ? "border-white scale-110 z-10 shadow-xl" : "border-white/10 opacity-80")}>
-                                    <P3Icon className={cn("absolute opacity-20 w-32 h-32 -top-4 -right-4", p3Theme.text)} />
-                                    <div className="z-10 text-center font-bold text-sm truncate w-full">{player3.name}</div>
-                                </Card>
-                            </div>
-                        </div>
-                    ) : (
-                        <Card className={cn(
-                            "w-full aspect-3/4 max-w-xs bg-neutral-900/80 backdrop-blur border-4 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 active:scale-95 group-hover:shadow-2xl",
-                            p1Theme.border, p1Theme.shadow
-                        )}>
-                            <P1Icon className={cn("absolute opacity-10 w-64 h-64 -bottom-10 -left-10 rotate-12 transition-transform duration-700 group-hover:rotate-0 group-hover:scale-110", p1Theme.text)} />
-                            <div className="absolute font-bold text-white/90 user-select-none z-10">
-                                <Counter
-                                    value={score.p1}
-                                    places={[10, 1]}
-                                    fontSize={120}
-                                    padding={0}
-                                    gap={10}
-                                    textColor="white"
-                                    fontWeight={900}
-                                    gradientHeight={0}
-                                />
-                            </div>
-                            <div className="absolute bottom-6 font-bold text-2xl flex items-center gap-2"><P1Icon size={24} /> {player1.name}</div>
-                        </Card>
-                    )}
-                    <div className="mt-4 font-arcade text-neutral-600" style={{ fontSize: '0.4rem' }}>Click card to add point</div>
+                <div className="flex-1 flex flex-col items-center" onClick={() => handlePoint(player1._id)}>
+                    {(() => {
+                        const team1Serving = serverId === player1._id || (isDoubles && serverId === player3._id);
+                        const team1ServerTheme = serverId === player1._id ? p1Theme : p3Theme;
+                        const Team1ServerIcon = serverId === player1._id ? P1Icon : P3Icon;
+                        const team1ServerName = serverId === player1._id ? player1.name : player3?.name;
+                        return (
+                            <Card className={cn(
+                                "w-full max-w-sm backdrop-blur border-4 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300",
+                                "aspect-[3/4]",
+                                team1Serving
+                                    ? cn("bg-neutral-800/90", team1ServerTheme.border, team1ServerTheme.shadow)
+                                    : cn("bg-neutral-900/80", p1Theme.border, p1Theme.shadow)
+                            )}>
+                                {team1Serving && (
+                                    <div className={cn("absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-1.5 rounded-full border", team1ServerTheme.text, team1ServerTheme.border, "bg-black/60")}>
+                                        <Team1ServerIcon size={12} />
+                                        <span className="font-arcade font-black" style={{ fontSize: '0.5rem' }}>
+                                            {isDoubles ? `${team1ServerName} SERVE` : 'SERVE'}
+                                        </span>
+                                    </div>
+                                )}
+                                {React.createElement(team1Serving ? Team1ServerIcon : P1Icon, { className: cn("absolute opacity-10 w-80 h-80 -bottom-12 -left-12 rotate-12", team1Serving ? team1ServerTheme.text : p1Theme.text) })}
+                                <div className="absolute font-bold text-white/90 user-select-none z-10">
+                                    <Counter value={score.p1} places={[10, 1]} fontSize={180} padding={0} gap={10} textColor="white" fontWeight={900} gradientHeight={0} />
+                                </div>
+                                {isDoubles ? (
+                                    <div className="absolute bottom-6 flex items-center gap-3 z-10">
+                                        <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-base transition-all", serverId === player1._id ? cn(p1Theme.text, "bg-white/10") : "text-white/40")}>
+                                            <P1Icon size={18} /> {player1.name}
+                                        </div>
+                                        <span className="text-neutral-600 text-sm">+</span>
+                                        <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-base transition-all", serverId === player3._id ? cn(p3Theme.text, "bg-white/10") : "text-white/40")}>
+                                            <P3Icon size={18} /> {player3.name}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="absolute bottom-8 font-bold text-3xl flex items-center gap-2 text-white"><P1Icon size={30} className="text-white" /> {player1.name}</div>
+                                )}
+                            </Card>
+                        );
+                    })()}
                 </div>
 
                 {/* VS / Divider */}
-                <div className="font-arcade text-neutral-700" style={{ fontSize: '1.2rem' }}>VS</div>
+                <div className="font-arcade text-neutral-700 text-3xl">VS</div>
 
                 {/* TEAM 2 */}
-                <div
-                    className="flex-1 flex flex-col items-center cursor-pointer group rounded-xl"
-                    data-nav="true"
-                    data-nav-group="game"
-                    tabIndex={0}
-                    onClick={() => handlePoint(player2._id)}
-                >
-                    {/* Serving Indicator Team 2 */}
-                    <div className={`mb-4 text-xl font-bold flex items-center gap-2 ${(serverId === player2._id || (isDoubles && serverId === player4._id)) ? `animate-bounce ${p2Theme.text}` : 'text-neutral-500'}`}>
-                        {(serverId === player2._id || (isDoubles && serverId === player4._id)) ? 'SERVING' : '\u00A0'}
-                    </div>
-
-                    {isDoubles ? (
-                        <div className="w-full flex flex-col items-center gap-4">
-                            {/* Big Score */}
-                            <div className={cn("text-9xl font-black tabular-nums tracking-tighter drop-shadow-2xl", p2Theme.text)}>
-                                {score.p2}
-                            </div>
-                            {/* Players */}
-                            <div className="flex gap-4">
-                                <Card className={cn("relative w-32 h-40 bg-neutral-900/80 border-2 overflow-hidden flex flex-col items-center justify-end p-2 transition-all", serverId === player2._id ? "border-white scale-110 z-10 shadow-xl" : "border-white/10 opacity-80")}>
-                                    <P2Icon className={cn("absolute opacity-20 w-32 h-32 -top-4 -left-4", p2Theme.text)} />
-                                    <div className="z-10 text-center font-bold text-sm truncate w-full">{player2.name}</div>
-                                </Card>
-                                <Card className={cn("relative w-32 h-40 bg-neutral-900/80 border-2 overflow-hidden flex flex-col items-center justify-end p-2 transition-all", serverId === player4._id ? "border-white scale-110 z-10 shadow-xl" : "border-white/10 opacity-80")}>
-                                    <P4Icon className={cn("absolute opacity-20 w-32 h-32 -top-4 -right-4", p4Theme.text)} />
-                                    <div className="z-10 text-center font-bold text-sm truncate w-full">{player4.name}</div>
-                                </Card>
-                            </div>
-                        </div>
-                    ) : (
-                        <Card className={cn(
-                            "w-full aspect-3/4 max-w-xs bg-neutral-900/80 backdrop-blur border-4 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 active:scale-95 group-hover:shadow-2xl",
-                            p2Theme.border, p2Theme.shadow
-                        )}>
-                            {/* Icon Background */}
-                            <P2Icon className={cn("absolute opacity-10 w-64 h-64 -bottom-10 -right-10 -rotate-12 transition-transform duration-700 group-hover:rotate-0 group-hover:scale-110", p2Theme.text)} />
-
-                            <div className="absolute font-bold text-white/90 user-select-none z-10">
-                                <Counter
-                                    value={score.p2}
-                                    places={[10, 1]}
-                                    fontSize={120}
-                                    padding={0}
-                                    gap={10}
-                                    textColor="white"
-                                    fontWeight={900}
-                                    gradientHeight={0}
-                                />
-                            </div>
-                            <div className="absolute bottom-6 font-bold text-2xl flex items-center gap-2"><P2Icon size={24} /> {player2.name}</div>
-                        </Card>
-                    )}
-                    <div className="mt-4 font-arcade text-neutral-600" style={{ fontSize: '0.4rem' }}>Click card to add point</div>
+                <div className="flex-1 flex flex-col items-center" onClick={() => handlePoint(player2._id)}>
+                    {(() => {
+                        const team2Serving = serverId === player2._id || (isDoubles && serverId === player4._id);
+                        const team2ServerTheme = serverId === player2._id ? p2Theme : p4Theme;
+                        const Team2ServerIcon = serverId === player2._id ? P2Icon : P4Icon;
+                        const team2ServerName = serverId === player2._id ? player2.name : player4?.name;
+                        return (
+                            <Card className={cn(
+                                "w-full max-w-sm backdrop-blur border-4 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300",
+                                "aspect-[3/4]",
+                                team2Serving
+                                    ? cn("bg-neutral-800/90", team2ServerTheme.border, team2ServerTheme.shadow)
+                                    : cn("bg-neutral-900/80", p2Theme.border, p2Theme.shadow)
+                            )}>
+                                {team2Serving && (
+                                    <div className={cn("absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-1.5 rounded-full border", team2ServerTheme.text, team2ServerTheme.border, "bg-black/60")}>
+                                        <Team2ServerIcon size={12} />
+                                        <span className="font-arcade font-black" style={{ fontSize: '0.5rem' }}>
+                                            {isDoubles ? `${team2ServerName} SERVE` : 'SERVE'}
+                                        </span>
+                                    </div>
+                                )}
+                                {React.createElement(team2Serving ? Team2ServerIcon : P2Icon, { className: cn("absolute opacity-10 w-80 h-80 -bottom-12 -right-12 -rotate-12", team2Serving ? team2ServerTheme.text : p2Theme.text) })}
+                                <div className="absolute font-bold text-white/90 user-select-none z-10">
+                                    <Counter value={score.p2} places={[10, 1]} fontSize={180} padding={0} gap={10} textColor="white" fontWeight={900} gradientHeight={0} />
+                                </div>
+                                {isDoubles ? (
+                                    <div className="absolute bottom-6 flex items-center gap-3 z-10">
+                                        <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-base transition-all", serverId === player2._id ? cn(p2Theme.text, "bg-white/10") : "text-white/40")}>
+                                            <P2Icon size={18} /> {player2.name}
+                                        </div>
+                                        <span className="text-neutral-600 text-sm">+</span>
+                                        <div className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-base transition-all", serverId === player4._id ? cn(p4Theme.text, "bg-white/10") : "text-white/40")}>
+                                            <P4Icon size={18} /> {player4.name}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="absolute bottom-8 font-bold text-3xl flex items-center gap-2 text-white"><P2Icon size={30} className="text-white" /> {player2.name}</div>
+                                )}
+                            </Card>
+                        );
+                    })()}
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="mt-12 z-30 flex gap-4">
+            <div className="mt-10 z-30 flex gap-4">
                 <button
-                    className="arcade-btn-cyan px-8 py-3 text-[0.5rem] flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="arcade-btn-cyan px-10 py-4 text-[0.6rem] flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                     data-nav="true"
                     data-nav-group="game"
                     tabIndex={0}
                     onClick={handleUndo}
                     disabled={match.events.length === 0}
                 >
-                    <RotateCcw size={14} className="mr-1" /> Undo
+                    <RotateCcw size={16} className="mr-1" /> Undo
                 </button>
             </div>
+
+            {/* Exit Confirmation Dialog */}
+            {showExitDialog && (
+                <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="absolute inset-0 scanlines pointer-events-none opacity-50" />
+                    <div className="z-10 bg-black/90 border border-red-500/30 rounded-2xl p-8 max-w-sm w-full mx-4 text-center font-mono shadow-[0_0_40px_rgba(239,68,68,0.1)]">
+                        <div className="w-14 h-14 rounded-full border-2 border-red-500/40 flex items-center justify-center mx-auto mb-4">
+                            <LogOut size={24} className="text-red-400" />
+                        </div>
+                        <p className="font-arcade text-white mb-1" style={{ fontSize: '0.8rem' }}>PAUSA</p>
+                        <p className="text-neutral-400 text-xs mb-8">Cosa vuoi fare con la partita in corso?</p>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                data-nav="true"
+                                data-nav-group="exit-dialog"
+                                tabIndex={0}
+                                autoFocus
+                                onClick={() => setShowExitDialog(false)}
+                                className="arcade-btn w-full py-3 text-[0.5rem] flex items-center justify-center gap-2"
+                            >
+                                <Play size={12} /> CONTINUA A GIOCARE
+                            </button>
+                            <button
+                                data-nav="true"
+                                data-nav-group="exit-dialog"
+                                tabIndex={0}
+                                onClick={handleSaveAndExit}
+                                className="arcade-btn-cyan w-full py-3 text-[0.5rem] flex items-center justify-center gap-2"
+                            >
+                                <Home size={12} /> ESCI E RIPRENDI DOPO
+                            </button>
+                            <button
+                                data-nav="true"
+                                data-nav-group="exit-dialog"
+                                tabIndex={0}
+                                onClick={handleAbandon}
+                                className="w-full py-3 text-[0.5rem] flex items-center justify-center gap-2 font-arcade text-red-500 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-colors"
+                            >
+                                <Trash2 size={12} /> ABBANDONA PARTITA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Winner Overlay */}
             {winner && (

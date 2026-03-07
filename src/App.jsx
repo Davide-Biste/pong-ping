@@ -3,27 +3,24 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { KeyBindingsProvider } from '@/contexts/KeyBindingsContext';
+import { SettingsProvider, useSettings } from '@/contexts/SettingsContext';
 import Dashboard from './components/Dashboard';
 import MatchSetup from './components/MatchSetup/MatchSetup';
 import GameScreen from './components/GameScreen/GameScreen';
 import HallOfFame from './components/HallOfFame';
 import PlayerManagement from './components/PlayerManagement';
 import KeyBindingsSettings from './components/KeyBindingsSettings';
+import Settings from './components/Settings';
 import Navbar from './components/Navbar';
 import Balatro from './components/react-bits/Balatro';
 import LoadingScreen from './components/LoadingScreen';
 import UpdateDialog from './components/UpdateDialog';
 import { BadgeAlert } from 'lucide-react';
 
-const BALATRO_COLORS = {
-  color1: '#9333EA',
-  color2: '#4C1D95',
-  color3: '#0F0520',
-};
-
-function App() {
+function AppInner() {
   const [backendStatus, setBackendStatus] = useState('checking');
   const [isLoading, setIsLoading] = useState(true);
+  const { bgTheme } = useSettings();
 
   useEffect(() => {
     const minDelay = new Promise((resolve) => setTimeout(resolve, 1800));
@@ -61,9 +58,9 @@ function App() {
           <Balatro
             spinRotation={-2.0}
             spinSpeed={7.0}
-            color1={BALATRO_COLORS.color1}
-            color2={BALATRO_COLORS.color2}
-            color3={BALATRO_COLORS.color3}
+            color1={bgTheme.color1}
+            color2={bgTheme.color2}
+            color3={bgTheme.color3}
             contrast={3.5}
             lighting={0.4}
             spinAmount={0.25}
@@ -101,11 +98,20 @@ function App() {
             <Route path="/players" element={<PlayerManagement />} />
             <Route path="/setup" element={<MatchSetup />} />
             <Route path="/game/:id" element={<GameScreen />} />
-            <Route path="/settings" element={<KeyBindingsSettings />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/remote" element={<KeyBindingsSettings />} />
           </Routes>
         </div>
       </Router>
     </KeyBindingsProvider>
+  );
+}
+
+function App() {
+  return (
+    <SettingsProvider>
+      <AppInner />
+    </SettingsProvider>
   );
 }
 

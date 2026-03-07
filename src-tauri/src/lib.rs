@@ -46,7 +46,9 @@ pub fn run() {
         commands::get_key_bindings,
         commands::set_key_binding,
         commands::delete_key_binding,
-        commands::reset_key_bindings
+        commands::reset_key_bindings,
+        commands::get_setting,
+        commands::set_setting
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

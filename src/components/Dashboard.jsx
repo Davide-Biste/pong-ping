@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Users } from 'lucide-react';
 import { useSpatialNav } from '@/hooks/useSpatialNav';
 import { useAction } from '@/hooks/useAction';
 import { userService } from '@/services/userService';
@@ -56,7 +55,7 @@ const Dashboard = () => {
                         className="text-green-400 font-arcade text-sm tracking-widest"
                         style={{ animation: 'blink 0.7s step-start infinite' }}
                     >
-                        ── INSERT COIN ──
+                        ── INSERT BALL ──
                     </span>
                 </motion.div>
 
@@ -75,9 +74,6 @@ const Dashboard = () => {
                     </div>
                     <div className="arcade-title-cyan text-green-300 text-7xl block">
                         PING
-                    </div>
-                    <div className="mt-5 text-neutral-500 font-arcade text-[0.55rem] tracking-[0.3em] uppercase">
-                        Table Tennis Tracker
                     </div>
                 </motion.div>
 
@@ -102,38 +98,8 @@ const Dashboard = () => {
                     transition={{ delay: 0.8, duration: 0.5 }}
                     className="text-neutral-600 font-arcade text-[0.6rem] tracking-widest text-center"
                 >
-                    PLAYERS: {playerCount}&nbsp;&nbsp;|&nbsp;&nbsp;© 2025 PONG PING
+                    PLAYERS: {playerCount}&nbsp;&nbsp;|&nbsp;&nbsp;© 2026 PONG PING
                 </motion.div>
-
-                {/* Footer buttons */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.0, duration: 0.5 }}
-                    className="flex gap-4 w-full"
-                >
-                    <button
-                        onClick={() => navigate('/hall-of-fame')}
-                        data-nav="true"
-                        data-nav-group="dashboard"
-                        tabIndex={0}
-                        className="arcade-btn-cyan flex-1 flex items-center justify-center gap-2 py-4 px-4 tracking-wider uppercase"
-                    >
-                        <Trophy size={14} />
-                        HALL OF FAME
-                    </button>
-                    <button
-                        onClick={() => navigate('/players')}
-                        data-nav="true"
-                        data-nav-group="dashboard"
-                        tabIndex={0}
-                        className="arcade-btn-cyan flex-1 flex items-center justify-center gap-2 py-4 px-4 tracking-wider uppercase"
-                    >
-                        <Users size={14} />
-                        PLAYERS
-                    </button>
-                </motion.div>
-
             </div>
         </div>
     );
